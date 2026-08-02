@@ -1,0 +1,1 @@
+alter table public.dispatch_logs add column if not exists error_code text;
