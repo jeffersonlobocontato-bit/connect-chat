@@ -74,6 +74,21 @@ export const dispatchCampaign = createServerFn({ method: "POST" })
     await supabase.from("campaigns").update({ status: "SENDING" }).eq("id", campaign.id);
 
     const template = campaign.message_templates;
+
+    // Encurta o link do material para medir cliques.
+    let linkParaEnvio = campaign.link_url;
+    if (campaign.link_url) {
+      const { getRequest } = await import("@tanstack/react-start/server");
+      const { makeShortCode } = await import("@/lib/whatsapp.server");
+      const origin = new URL(getRequest().url).origin;
+      const code = makeShortCode();
+      const { error: linkError } = await supabase.from("short_links").insert({
+        short_code: code,
+        original_url: campaign.link_url,
+        campaign_id: campaign.id,
+      });
+      if (!linkError) linkParaEnvio = `${origin}/api/public/r/${code}`;
+    }
     const live = isLiveMode();
     let sent = 0;
     let failed = 0;
