@@ -81,14 +81,11 @@ function AuthPage() {
   return (
     <div className="flex min-h-screen">
       <div className="hidden flex-1 flex-col justify-between bg-sidebar p-10 text-sidebar-foreground lg:flex">
-        <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <Radio className="h-5 w-5" />
-          </span>
-          <span className="font-display text-lg font-semibold text-sidebar-accent-foreground">
-            Agência de Imprensa Vozes
-          </span>
-        </div>
+        <img
+          src={logoNegativo.url}
+          alt="ZapVozes — Plataforma de Disparo de Mensagens"
+          className="h-24 w-auto self-start"
+        />
         <div className="max-w-md">
           <h2 className="font-display text-3xl font-semibold text-sidebar-accent-foreground">
             Comunicados de imprensa que chegam onde importa.
@@ -100,6 +97,7 @@ function AuthPage() {
         </div>
         <p className="text-xs text-sidebar-foreground/60">Acesso restrito à equipe autorizada.</p>
       </div>
+
 
       <div className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
