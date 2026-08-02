@@ -78,11 +78,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Disparador de Imprensa · Agência de Imprensa Vozes" },
+      {
+        name: "description",
+        content:
+          "Plataforma de mensageria da AIV para disparo de comunicados de imprensa por WhatsApp.",
+      },
+      { name: "author", content: "Agência de Imprensa Vozes" },
+      { property: "og:title", content: "Disparador de Imprensa · AIV" },
+      {
+        property: "og:description",
+        content: "Base de jornalistas, segmentação e relatórios de leitura em um só painel.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
