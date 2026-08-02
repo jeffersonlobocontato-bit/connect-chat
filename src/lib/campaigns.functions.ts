@@ -99,7 +99,7 @@ export const dispatchCampaign = createServerFn({ method: "POST" })
         templateName: template?.meta_template_name ?? "sem_template",
         language: template?.language ?? "pt_BR",
         bodyParams: [recipient.name],
-        linkUrl: campaign.link_url,
+        linkUrl: linkParaEnvio,
         mediaUrl: campaign.media_url,
         mediaType: campaign.media_type,
       });
