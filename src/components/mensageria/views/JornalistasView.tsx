@@ -84,8 +84,14 @@ export function JornalistasView() {
 
   async function salvar() {
     const phone = normalizePhone(form.phone);
-    if (!form.name.trim()) return toast.error("Informe o nome do jornalista");
-    if (!phone) return toast.error("Telefone inválido — use DDI + DDD + número");
+    if (!form.name.trim()) {
+      toast.error("Informe o nome do jornalista");
+      return;
+    }
+    if (!phone) {
+      toast.error("Telefone inválido — use DDI + DDD + número");
+      return;
+    }
 
     setSaving(true);
     const payload = {
@@ -120,7 +126,10 @@ export function JornalistasView() {
 
   async function remover(id: string) {
     const { error } = await supabase.from("journalists").delete().eq("id", id);
-    if (error) return toast.error("Erro ao remover");
+    if (error) {
+      toast.error("Erro ao remover");
+      return;
+    }
     toast.success("Cadastro removido");
     void carregar();
   }
