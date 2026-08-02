@@ -14,16 +14,463 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      campaigns: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          link_url: string | null
+          list_id: string | null
+          media_type: string | null
+          media_url: string | null
+          name: string
+          reengagement_of: string | null
+          scheduled_at: string | null
+          segment_id: string | null
+          sent_at: string | null
+          status: string
+          template_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          link_url?: string | null
+          list_id?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          name: string
+          reengagement_of?: string | null
+          scheduled_at?: string | null
+          segment_id?: string | null
+          sent_at?: string | null
+          status?: string
+          template_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          link_url?: string | null
+          list_id?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          name?: string
+          reengagement_of?: string | null
+          scheduled_at?: string | null
+          segment_id?: string | null
+          sent_at?: string | null
+          status?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "contact_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_reengagement_of_fkey"
+            columns: ["reengagement_of"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "segments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_list_members: {
+        Row: {
+          created_at: string
+          id: string
+          journalist_id: string
+          list_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          journalist_id: string
+          list_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          journalist_id?: string
+          list_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_list_members_journalist_id_fkey"
+            columns: ["journalist_id"]
+            isOneToOne: false
+            referencedRelation: "journalists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_list_members_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "contact_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_lists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      dispatch_logs: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          id: string
+          journalist_id: string | null
+          phone: string
+          read_at: string | null
+          sent_at: string | null
+          status: string
+          wa_message_id: string | null
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          journalist_id?: string | null
+          phone: string
+          read_at?: string | null
+          sent_at?: string | null
+          status?: string
+          wa_message_id?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          journalist_id?: string | null
+          phone?: string
+          read_at?: string | null
+          sent_at?: string | null
+          status?: string
+          wa_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_logs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatch_logs_journalist_id_fkey"
+            columns: ["journalist_id"]
+            isOneToOne: false
+            referencedRelation: "journalists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journalists: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          opt_in: boolean
+          outlet: string | null
+          phone: string
+          region: string | null
+          role_title: string | null
+          tags: string[]
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          opt_in?: boolean
+          outlet?: string | null
+          phone: string
+          region?: string | null
+          role_title?: string | null
+          tags?: string[]
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          opt_in?: boolean
+          outlet?: string | null
+          phone?: string
+          region?: string | null
+          role_title?: string | null
+          tags?: string[]
+        }
+        Relationships: []
+      }
+      message_templates: {
+        Row: {
+          body_text: string
+          category: string
+          created_at: string
+          id: string
+          language: string
+          last_used_at: string | null
+          meta_template_name: string
+          status: string
+          tags: string[]
+          usage_count: number
+        }
+        Insert: {
+          body_text: string
+          category?: string
+          created_at?: string
+          id?: string
+          language?: string
+          last_used_at?: string | null
+          meta_template_name: string
+          status?: string
+          tags?: string[]
+          usage_count?: number
+        }
+        Update: {
+          body_text?: string
+          category?: string
+          created_at?: string
+          id?: string
+          language?: string
+          last_used_at?: string | null
+          meta_template_name?: string
+          status?: string
+          tags?: string[]
+          usage_count?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      segments: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          rules: Json
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          rules?: Json
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          rules?: Json
+        }
+        Relationships: []
+      }
+      short_link_clicks: {
+        Row: {
+          clicked_at: string
+          id: string
+          journalist_id: string | null
+          short_link_id: string
+        }
+        Insert: {
+          clicked_at?: string
+          id?: string
+          journalist_id?: string | null
+          short_link_id: string
+        }
+        Update: {
+          clicked_at?: string
+          id?: string
+          journalist_id?: string | null
+          short_link_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "short_link_clicks_journalist_id_fkey"
+            columns: ["journalist_id"]
+            isOneToOne: false
+            referencedRelation: "journalists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "short_link_clicks_short_link_id_fkey"
+            columns: ["short_link_id"]
+            isOneToOne: false
+            referencedRelation: "short_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      short_links: {
+        Row: {
+          campaign_id: string | null
+          click_count: number
+          created_at: string
+          id: string
+          original_url: string
+          short_code: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          click_count?: number
+          created_at?: string
+          id?: string
+          original_url: string
+          short_code: string
+        }
+        Update: {
+          campaign_id?: string | null
+          click_count?: number
+          created_at?: string
+          id?: string
+          original_url?: string
+          short_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "short_links_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      waba_config: {
+        Row: {
+          active: boolean
+          created_at: string
+          display_name: string
+          id: string
+          messaging_limit_tier: string | null
+          phone_number_id: string | null
+          quality_checked_at: string | null
+          quality_rating: string
+          waba_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          display_name?: string
+          id?: string
+          messaging_limit_tier?: string | null
+          phone_number_id?: string | null
+          quality_checked_at?: string | null
+          quality_rating?: string
+          waba_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          display_name?: string
+          id?: string
+          messaging_limit_tier?: string | null
+          phone_number_id?: string | null
+          quality_checked_at?: string | null
+          quality_rating?: string
+          waba_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +597,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
