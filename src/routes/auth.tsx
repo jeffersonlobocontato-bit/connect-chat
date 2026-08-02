@@ -2,11 +2,13 @@ import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import logoNegativo from "@/assets/zapvozes-negativo.png.asset.json";
+import logoOriginal from "@/assets/zapvozes.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Radio } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
