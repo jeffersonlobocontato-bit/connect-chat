@@ -9,9 +9,10 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Radio,
 } from "lucide-react";
+import logoNegativo from "@/assets/zapvozes-negativo.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
+
 import { Button } from "@/components/ui/button";
 import { DashboardView } from "./views/DashboardView";
 import { JornalistasView } from "./views/JornalistasView";
@@ -83,18 +84,13 @@ export function PainelMensageria() {
     <div className="flex min-h-screen bg-background">
       <aside className="hidden w-64 flex-col bg-sidebar text-sidebar-foreground md:flex">
         <div className="border-b border-sidebar-border px-5 py-5">
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-              <Radio className="h-4 w-4" />
-            </span>
-            <div>
-              <div className="font-display text-sm font-semibold text-sidebar-accent-foreground">
-                Agência Vozes
-              </div>
-              <div className="text-xs text-sidebar-foreground/70">Disparador de Imprensa</div>
-            </div>
-          </div>
+          <img
+            src={logoNegativo.url}
+            alt="ZapVozes — Plataforma de Disparo de Mensagens"
+            className="h-16 w-auto"
+          />
         </div>
+
         <nav className="flex-1 space-y-1 px-2 py-4">
           {NAV.map((item) => {
             const Icon = item.icon;
