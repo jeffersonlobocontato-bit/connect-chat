@@ -9,9 +9,10 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Radio,
 } from "lucide-react";
+import logoNegativo from "@/assets/zapvozes-negativo.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
+
 import { Button } from "@/components/ui/button";
 import { DashboardView } from "./views/DashboardView";
 import { JornalistasView } from "./views/JornalistasView";
