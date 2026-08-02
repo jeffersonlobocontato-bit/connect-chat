@@ -3,9 +3,10 @@
 
 export type SendResult = {
   ok: boolean;
-  messageId?: string;
-  error?: string;
+  messageId?: string | undefined;
+  error?: string | undefined;
 };
+
 
 export function isLiveMode(): boolean {
   return Boolean(process.env["META_WHATSAPP_TOKEN"] && process.env["META_PHONE_NUMBER_ID"]);
