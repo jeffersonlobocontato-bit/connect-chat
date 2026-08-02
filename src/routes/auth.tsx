@@ -57,7 +57,9 @@ function AuthPage() {
           ? "E-mail ou senha incorretos"
           : error.message.includes("already registered")
             ? "Este e-mail já tem conta — faça login"
-            : error.message,
+            : error.message.toLowerCase().includes("weak")
+              ? "Senha muito fraca — combine letras, números e símbolos"
+              : error.message,
       );
       return;
     }
