@@ -103,7 +103,13 @@ function AuthPage() {
 
       <div className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
+          <img
+            src={logoOriginal.url}
+            alt="ZapVozes — Plataforma de Disparo de Mensagens"
+            className="mb-8 h-20 w-auto lg:hidden"
+          />
           <h1 className="font-display text-2xl font-semibold">
+
             {mode === "login" ? "Entrar" : "Criar conta"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
