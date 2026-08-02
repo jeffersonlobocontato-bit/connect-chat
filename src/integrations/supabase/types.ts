@@ -156,6 +156,7 @@ export type Database = {
           campaign_id: string
           created_at: string
           delivered_at: string | null
+          error_code: string | null
           error_message: string | null
           id: string
           journalist_id: string | null
@@ -169,6 +170,7 @@ export type Database = {
           campaign_id: string
           created_at?: string
           delivered_at?: string | null
+          error_code?: string | null
           error_message?: string | null
           id?: string
           journalist_id?: string | null
@@ -182,6 +184,7 @@ export type Database = {
           campaign_id?: string
           created_at?: string
           delivered_at?: string | null
+          error_code?: string | null
           error_message?: string | null
           id?: string
           journalist_id?: string | null
