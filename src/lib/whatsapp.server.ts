@@ -17,9 +17,9 @@ export type OutboundMessage = {
   templateName: string;
   language: string;
   bodyParams: string[];
-  linkUrl?: string | null;
-  mediaUrl?: string | null;
-  mediaType?: string | null;
+  linkUrl?: string | null | undefined;
+  mediaUrl?: string | null | undefined;
+  mediaType?: string | null | undefined;
 };
 
 export async function sendWhatsAppMessage(message: OutboundMessage): Promise<SendResult> {
