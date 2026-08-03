@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      auto_tag_rules: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          keyword: string
+          tag: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          keyword: string
+          tag: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          keyword?: string
+          tag?: string
+        }
+        Relationships: []
+      }
       campaigns: {
         Row: {
           audience: string
@@ -109,6 +133,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      canned_responses: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
       }
       contact_list_members: {
         Row: {
@@ -319,6 +391,8 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          instagram_igsid: string | null
+          messenger_psid: string | null
           name: string
           opt_in: boolean
           opt_in_email: boolean
@@ -329,7 +403,7 @@ export type Database = {
           opt_in_whatsapp_source: string | null
           outlet: string | null
           owner_note: string | null
-          phone: string
+          phone: string | null
           region: string | null
           role_title: string | null
           source: string | null
@@ -345,6 +419,8 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          instagram_igsid?: string | null
+          messenger_psid?: string | null
           name: string
           opt_in?: boolean
           opt_in_email?: boolean
@@ -355,7 +431,7 @@ export type Database = {
           opt_in_whatsapp_source?: string | null
           outlet?: string | null
           owner_note?: string | null
-          phone: string
+          phone?: string | null
           region?: string | null
           role_title?: string | null
           source?: string | null
@@ -371,6 +447,8 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          instagram_igsid?: string | null
+          messenger_psid?: string | null
           name?: string
           opt_in?: boolean
           opt_in_email?: boolean
@@ -381,7 +459,7 @@ export type Database = {
           opt_in_whatsapp_source?: string | null
           outlet?: string | null
           owner_note?: string | null
-          phone?: string
+          phone?: string | null
           region?: string | null
           role_title?: string | null
           source?: string | null
@@ -500,6 +578,89 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      release_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          release_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          release_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          release_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "release_events_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      releases: {
+        Row: {
+          body_html: string
+          client_id: string
+          cover_media_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          published: boolean
+          slug: string
+          summary: string | null
+          title: string
+        }
+        Insert: {
+          body_html: string
+          client_id: string
+          cover_media_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          published?: boolean
+          slug: string
+          summary?: string | null
+          title: string
+        }
+        Update: {
+          body_html?: string
+          client_id?: string
+          cover_media_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          published?: boolean
+          slug?: string
+          summary?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "releases_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "releases_cover_media_id_fkey"
+            columns: ["cover_media_id"]
+            isOneToOne: false
+            referencedRelation: "media_library"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       segments: {
         Row: {

@@ -11,23 +11,39 @@ import { EmptyState, PageHeader } from "../ui-bits";
 type Message = {
   id: string;
   journalist_id: string;
+  channel: string | null;
   direction: "inbound" | "outbound";
   body: string;
   status: string;
   created_at: string;
 };
 
-type JournalistLite = { id: string; name: string; outlet: string | null; phone: string };
+type JournalistLite = {
+  id: string;
+  name: string;
+  outlet: string | null;
+  phone: string | null;
+};
+
+type CannedResponse = { id: string; title: string; body: string };
 
 type ConversationSummary = {
   journalist: JournalistLite;
   lastMessage: Message;
   unreadCount: number;
+  channel: string;
+};
+
+const CHANNEL_LABEL: Record<string, string> = {
+  whatsapp: "WhatsApp",
+  messenger: "Messenger",
+  instagram: "Instagram",
 };
 
 export function ConversasView() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [journalists, setJournalists] = useState<Record<string, JournalistLite>>({});
+  const [cannedResponses, setCannedResponses] = useState<CannedResponse[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
@@ -37,10 +53,10 @@ export function ConversasView() {
   async function carregar() {
     const { data } = await supabase
       .from("conversation_messages")
-      .select("id, journalist_id, direction, body, status, created_at")
+      .select("id, journalist_id, channel, direction, body, status, created_at")
       .order("created_at", { ascending: false })
       .limit(500);
-    setMessages((data ?? []) as Message[]);
+    setMessages((data ?? []) as unknown as Message[]);
 
     const ids = Array.from(new Set((data ?? []).map((m) => m.journalist_id).filter(Boolean)));
     if (ids.length > 0) {
@@ -49,9 +65,15 @@ export function ConversasView() {
         .select("id, name, outlet, phone")
         .in("id", ids as string[]);
       const map: Record<string, JournalistLite> = {};
-      for (const j of js ?? []) map[j.id] = j;
+      for (const j of js ?? []) map[j.id] = j as JournalistLite;
       setJournalists(map);
     }
+
+    const { data: canned } = await supabase
+      .from("canned_responses")
+      .select("id, title, body")
+      .order("title");
+    setCannedResponses((canned ?? []) as CannedResponse[]);
   }
 
   useEffect(() => {
@@ -79,7 +101,12 @@ export function ConversasView() {
       const unreadCount = list.filter(
         (m) => m.direction === "inbound" && m.status === "received",
       ).length;
-      result.push({ journalist, lastMessage: sorted[0]!, unreadCount });
+      result.push({
+        journalist,
+        lastMessage: sorted[0]!,
+        unreadCount,
+        channel: sorted[0]!.channel ?? "whatsapp",
+      });
     }
     return result.sort(
       (a, b) =>
@@ -95,6 +122,9 @@ export function ConversasView() {
     [messages, selectedId],
   );
 
+  const canalAtual =
+    conversations.find((c) => c.journalist.id === selectedId)?.channel ?? "whatsapp";
+
   async function abrirConversa(journalistId: string) {
     setSelectedId(journalistId);
     await marcarLida({ data: { journalistId } });
@@ -105,7 +135,9 @@ export function ConversasView() {
     if (!selectedId || !reply.trim()) return;
     setSending(true);
     try {
-      await enviarResposta({ data: { journalistId: selectedId, body: reply.trim() } });
+      await enviarResposta({
+        data: { journalistId: selectedId, body: reply.trim(), channel: canalAtual },
+      });
       setReply("");
       void carregar();
     } catch (error) {
@@ -121,11 +153,11 @@ export function ConversasView() {
     <div>
       <PageHeader
         title="Conversas"
-        subtitle="Respostas dos jornalistas ao WhatsApp da AIV, em um só lugar."
+        subtitle="Respostas por WhatsApp, Messenger e Instagram Direct, em um só lugar."
       />
 
       {conversations.length === 0 ? (
-        <EmptyState message="Nenhuma conversa ainda. Assim que um jornalista responder, ela aparece aqui." />
+        <EmptyState message="Nenhuma conversa ainda. Assim que alguém responder, ela aparece aqui." />
       ) : (
         <div className="grid gap-4 rounded-xl border border-border bg-card md:grid-cols-[300px_1fr]">
           <div className="max-h-[70vh] overflow-y-auto border-b border-border md:border-b-0 md:border-r">
@@ -145,6 +177,9 @@ export function ConversasView() {
                     </span>
                   )}
                 </div>
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  {CHANNEL_LABEL[c.channel] ?? c.channel}
+                </span>
                 <span className="truncate text-xs text-muted-foreground">
                   {c.lastMessage.direction === "outbound" ? "Você: " : ""}
                   {c.lastMessage.body}
@@ -164,7 +199,9 @@ export function ConversasView() {
                 <div className="border-b border-border px-4 py-3">
                   <div className="text-sm font-medium">{selecionado.name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {selecionado.outlet ?? ""} · {selecionado.phone}
+                    {CHANNEL_LABEL[canalAtual] ?? canalAtual}
+                    {selecionado.outlet ? ` · ${selecionado.outlet}` : ""}
+                    {selecionado.phone ? ` · ${selecionado.phone}` : ""}
                   </div>
                 </div>
                 <div className="flex-1 space-y-2 overflow-y-auto p-4">
@@ -190,6 +227,22 @@ export function ConversasView() {
                     </div>
                   ))}
                 </div>
+
+                {cannedResponses.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 border-t border-border px-3 pt-2">
+                    {cannedResponses.map((r) => (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => setReply(r.body)}
+                        className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground transition hover:bg-muted"
+                      >
+                        {r.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <div className="flex items-end gap-2 border-t border-border p-3">
                   <Textarea
                     rows={2}

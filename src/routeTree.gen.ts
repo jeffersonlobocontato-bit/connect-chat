@@ -14,10 +14,13 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as ApiPublicDataRetentionRouteImport } from './routes/api/public/data-retention'
+import { Route as ApiPublicMetaSocialWebhookRouteImport } from './routes/api/public/meta-social-webhook'
 import { Route as ApiPublicResendWebhookRouteImport } from './routes/api/public/resend-webhook'
 import { Route as ApiPublicRunScheduledRouteImport } from './routes/api/public/run-scheduled'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp-webhook'
+import { Route as ReleaseClientSlugReleaseSlugRouteImport } from './routes/release.$clientSlug.$releaseSlug'
 import { Route as ApiPublicRCodeRouteImport } from './routes/api/public/r.$code'
+import { Route as ApiPublicReleaseImageReleaseIdRouteImport } from './routes/api/public/release-image.$releaseId'
 import { Route as ApiPublicUnsubscribeTokenRouteImport } from './routes/api/public/unsubscribe.$token'
 
 const IndexRoute = IndexRouteImport.update({
@@ -44,6 +47,12 @@ const ApiPublicDataRetentionRoute = ApiPublicDataRetentionRouteImport.update({
   path: '/api/public/data-retention',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicMetaSocialWebhookRoute =
+  ApiPublicMetaSocialWebhookRouteImport.update({
+    id: '/api/public/meta-social-webhook',
+    path: '/api/public/meta-social-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicResendWebhookRoute = ApiPublicResendWebhookRouteImport.update({
   id: '/api/public/resend-webhook',
   path: '/api/public/resend-webhook',
@@ -60,11 +69,23 @@ const ApiPublicWhatsappWebhookRoute =
     path: '/api/public/whatsapp-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ReleaseClientSlugReleaseSlugRoute =
+  ReleaseClientSlugReleaseSlugRouteImport.update({
+    id: '/release/$clientSlug/$releaseSlug',
+    path: '/release/$clientSlug/$releaseSlug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicRCodeRoute = ApiPublicRCodeRouteImport.update({
   id: '/api/public/r/$code',
   path: '/api/public/r/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicReleaseImageReleaseIdRoute =
+  ApiPublicReleaseImageReleaseIdRouteImport.update({
+    id: '/api/public/release-image/$releaseId',
+    path: '/api/public/release-image/$releaseId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicUnsubscribeTokenRoute =
   ApiPublicUnsubscribeTokenRouteImport.update({
     id: '/api/public/unsubscribe/$token',
@@ -77,10 +98,13 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/api/public/data-retention': typeof ApiPublicDataRetentionRoute
+  '/api/public/meta-social-webhook': typeof ApiPublicMetaSocialWebhookRoute
   '/api/public/resend-webhook': typeof ApiPublicResendWebhookRoute
   '/api/public/run-scheduled': typeof ApiPublicRunScheduledRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
+  '/release/$clientSlug/$releaseSlug': typeof ReleaseClientSlugReleaseSlugRoute
   '/api/public/r/$code': typeof ApiPublicRCodeRoute
+  '/api/public/release-image/$releaseId': typeof ApiPublicReleaseImageReleaseIdRoute
   '/api/public/unsubscribe/$token': typeof ApiPublicUnsubscribeTokenRoute
 }
 export interface FileRoutesByTo {
@@ -88,10 +112,13 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/api/public/data-retention': typeof ApiPublicDataRetentionRoute
+  '/api/public/meta-social-webhook': typeof ApiPublicMetaSocialWebhookRoute
   '/api/public/resend-webhook': typeof ApiPublicResendWebhookRoute
   '/api/public/run-scheduled': typeof ApiPublicRunScheduledRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
+  '/release/$clientSlug/$releaseSlug': typeof ReleaseClientSlugReleaseSlugRoute
   '/api/public/r/$code': typeof ApiPublicRCodeRoute
+  '/api/public/release-image/$releaseId': typeof ApiPublicReleaseImageReleaseIdRoute
   '/api/public/unsubscribe/$token': typeof ApiPublicUnsubscribeTokenRoute
 }
 export interface FileRoutesById {
@@ -101,10 +128,13 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/api/public/data-retention': typeof ApiPublicDataRetentionRoute
+  '/api/public/meta-social-webhook': typeof ApiPublicMetaSocialWebhookRoute
   '/api/public/resend-webhook': typeof ApiPublicResendWebhookRoute
   '/api/public/run-scheduled': typeof ApiPublicRunScheduledRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
+  '/release/$clientSlug/$releaseSlug': typeof ReleaseClientSlugReleaseSlugRoute
   '/api/public/r/$code': typeof ApiPublicRCodeRoute
+  '/api/public/release-image/$releaseId': typeof ApiPublicReleaseImageReleaseIdRoute
   '/api/public/unsubscribe/$token': typeof ApiPublicUnsubscribeTokenRoute
 }
 export interface FileRouteTypes {
@@ -114,10 +144,13 @@ export interface FileRouteTypes {
     | '/auth'
     | '/painel'
     | '/api/public/data-retention'
+    | '/api/public/meta-social-webhook'
     | '/api/public/resend-webhook'
     | '/api/public/run-scheduled'
     | '/api/public/whatsapp-webhook'
+    | '/release/$clientSlug/$releaseSlug'
     | '/api/public/r/$code'
+    | '/api/public/release-image/$releaseId'
     | '/api/public/unsubscribe/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -125,10 +158,13 @@ export interface FileRouteTypes {
     | '/auth'
     | '/painel'
     | '/api/public/data-retention'
+    | '/api/public/meta-social-webhook'
     | '/api/public/resend-webhook'
     | '/api/public/run-scheduled'
     | '/api/public/whatsapp-webhook'
+    | '/release/$clientSlug/$releaseSlug'
     | '/api/public/r/$code'
+    | '/api/public/release-image/$releaseId'
     | '/api/public/unsubscribe/$token'
   id:
     | '__root__'
@@ -137,10 +173,13 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/painel'
     | '/api/public/data-retention'
+    | '/api/public/meta-social-webhook'
     | '/api/public/resend-webhook'
     | '/api/public/run-scheduled'
     | '/api/public/whatsapp-webhook'
+    | '/release/$clientSlug/$releaseSlug'
     | '/api/public/r/$code'
+    | '/api/public/release-image/$releaseId'
     | '/api/public/unsubscribe/$token'
   fileRoutesById: FileRoutesById
 }
@@ -149,10 +188,13 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiPublicDataRetentionRoute: typeof ApiPublicDataRetentionRoute
+  ApiPublicMetaSocialWebhookRoute: typeof ApiPublicMetaSocialWebhookRoute
   ApiPublicResendWebhookRoute: typeof ApiPublicResendWebhookRoute
   ApiPublicRunScheduledRoute: typeof ApiPublicRunScheduledRoute
   ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
+  ReleaseClientSlugReleaseSlugRoute: typeof ReleaseClientSlugReleaseSlugRoute
   ApiPublicRCodeRoute: typeof ApiPublicRCodeRoute
+  ApiPublicReleaseImageReleaseIdRoute: typeof ApiPublicReleaseImageReleaseIdRoute
   ApiPublicUnsubscribeTokenRoute: typeof ApiPublicUnsubscribeTokenRoute
 }
 
@@ -193,6 +235,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDataRetentionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/meta-social-webhook': {
+      id: '/api/public/meta-social-webhook'
+      path: '/api/public/meta-social-webhook'
+      fullPath: '/api/public/meta-social-webhook'
+      preLoaderRoute: typeof ApiPublicMetaSocialWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/resend-webhook': {
       id: '/api/public/resend-webhook'
       path: '/api/public/resend-webhook'
@@ -214,11 +263,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWhatsappWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/release/$clientSlug/$releaseSlug': {
+      id: '/release/$clientSlug/$releaseSlug'
+      path: '/release/$clientSlug/$releaseSlug'
+      fullPath: '/release/$clientSlug/$releaseSlug'
+      preLoaderRoute: typeof ReleaseClientSlugReleaseSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/r/$code': {
       id: '/api/public/r/$code'
       path: '/api/public/r/$code'
       fullPath: '/api/public/r/$code'
       preLoaderRoute: typeof ApiPublicRCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/release-image/$releaseId': {
+      id: '/api/public/release-image/$releaseId'
+      path: '/api/public/release-image/$releaseId'
+      fullPath: '/api/public/release-image/$releaseId'
+      preLoaderRoute: typeof ApiPublicReleaseImageReleaseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/unsubscribe/$token': {
@@ -247,10 +310,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiPublicDataRetentionRoute: ApiPublicDataRetentionRoute,
+  ApiPublicMetaSocialWebhookRoute: ApiPublicMetaSocialWebhookRoute,
   ApiPublicResendWebhookRoute: ApiPublicResendWebhookRoute,
   ApiPublicRunScheduledRoute: ApiPublicRunScheduledRoute,
   ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
+  ReleaseClientSlugReleaseSlugRoute: ReleaseClientSlugReleaseSlugRoute,
   ApiPublicRCodeRoute: ApiPublicRCodeRoute,
+  ApiPublicReleaseImageReleaseIdRoute: ApiPublicReleaseImageReleaseIdRoute,
   ApiPublicUnsubscribeTokenRoute: ApiPublicUnsubscribeTokenRoute,
 }
 export const routeTree = rootRouteImport

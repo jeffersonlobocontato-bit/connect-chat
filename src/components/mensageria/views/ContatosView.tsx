@@ -29,8 +29,11 @@ export type Audience = "press" | "lead";
 export type Contact = {
   id: string;
   name: string;
-  phone: string;
+  phone: string | null;
   email: string | null;
+  messenger_psid: string | null;
+  instagram_igsid: string | null;
+
   outlet: string | null;
   role_title: string | null;
   region: string | null;
@@ -62,7 +65,10 @@ const EMPTY = {
   name: "",
   phone: "",
   email: "",
+  messenger_psid: "",
+  instagram_igsid: "",
   outlet: "",
+
   role_title: "",
   region: "",
   company: "",
@@ -150,8 +156,10 @@ export function ContatosView({ audience }: { audience: Audience }) {
     setEditing(c.id);
     setForm({
       name: c.name,
-      phone: c.phone,
+      phone: c.phone ?? "",
       email: c.email ?? "",
+      messenger_psid: c.messenger_psid ?? "",
+      instagram_igsid: c.instagram_igsid ?? "",
       outlet: c.outlet ?? "",
       role_title: c.role_title ?? "",
       region: c.region ?? "",
@@ -172,14 +180,16 @@ export function ContatosView({ audience }: { audience: Audience }) {
 
   async function salvar() {
     const phone = normalizePhone(form.phone);
+    const temSocial = Boolean(form.messenger_psid.trim() || form.instagram_igsid.trim());
     if (!form.name.trim()) {
       toast.error("Informe o nome do contato");
       return;
     }
-    if (!phone) {
-      toast.error("Telefone inválido — use DDI + DDD + número");
+    if (!phone && !temSocial) {
+      toast.error("Informe um telefone válido (DDI + DDD + número) ou um identificador social");
       return;
     }
+
     if (form.email.trim() && !form.email.includes("@")) {
       toast.error("E-mail inválido");
       return;
@@ -320,6 +330,25 @@ export function ContatosView({ audience }: { audience: Audience }) {
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                   />
                 </div>
+                <div>
+                  <Label htmlFor="psid">ID do Messenger (opcional)</Label>
+                  <Input
+                    id="psid"
+                    placeholder="PSID da conversa no Messenger"
+                    value={form.messenger_psid}
+                    onChange={(e) => setForm({ ...form, messenger_psid: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="igsid">ID do Instagram (opcional)</Label>
+                  <Input
+                    id="igsid"
+                    placeholder="IGSID da conversa no Direct"
+                    value={form.instagram_igsid}
+                    onChange={(e) => setForm({ ...form, instagram_igsid: e.target.value })}
+                  />
+                </div>
+
 
                 {isLead ? (
                   <>
