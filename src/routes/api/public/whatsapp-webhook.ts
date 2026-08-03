@@ -124,7 +124,7 @@ export const Route = createFileRoute("/api/public/whatsapp-webhook")({
               // um mecanismo simples de descadastro.
               if (msg.text?.body && isOptOutMessage(msg.text.body)) {
                 const confirmacao =
-                  "Você não vai mais receber mensagens da AIV por aqui. Se mudar de ideia, é só pedir pra ser recadastrado.";
+                  "Você não vai mais receber mensagens da Agência de Inteligência Vozes por aqui. Se mudar de ideia, é só pedir pra ser recadastrado.";
                 await supabaseAdmin
                   .from("journalists")
                   .update({

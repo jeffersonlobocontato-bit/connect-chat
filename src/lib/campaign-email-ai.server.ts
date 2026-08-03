@@ -67,7 +67,7 @@ export async function generateEmailFromRelease(params: {
 }): Promise<GeneratedEmail> {
   const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
 
-  let title = params.campaignName?.trim() || "Comunicado da AIV";
+  let title = params.campaignName?.trim() || "Comunicado da Agência de Inteligência Vozes";
   let summary = "";
   let bodyText = "";
   let coverUrl: string | null = null;
@@ -113,7 +113,7 @@ export async function generateEmailFromRelease(params: {
 
   const prompt = `Monte um e-mail de assessoria de imprensa em HTML.
 
-Cliente: ${clientName || "AIV"}
+Cliente: ${clientName || "Agência de Inteligência Vozes"}
 Título da matéria: ${title}
 Resumo: ${summary || "(sem resumo)"}
 Texto da matéria: ${bodyText.slice(0, 6000) || "(sem texto)"}

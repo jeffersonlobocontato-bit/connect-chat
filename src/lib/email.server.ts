@@ -42,7 +42,7 @@ export function appendUnsubscribeFooter(html: string, unsubscribeUrl: string): s
   return `${html}
 <hr style="margin-top:24px;border:none;border-top:1px solid #e2e8f0" />
 <p style="font-size:12px;color:#94a3b8;margin-top:12px">
-  Você recebeu este e-mail porque faz parte da base de imprensa da AIV.
+  Você recebeu este e-mail porque faz parte da base de imprensa da Agência de Inteligência Vozes.
   <a href="${unsubscribeUrl}" style="color:#94a3b8">Não quero mais receber</a>.
 </p>`;
 }
@@ -56,7 +56,7 @@ export async function sendEmail(message: OutboundEmail): Promise<EmailSendResult
 
   const apiKey = process.env["RESEND_API_KEY"]!;
   const fromAddress = process.env["RESEND_FROM_ADDRESS"] || DEFAULT_FROM_ADDRESS;
-  const fromName = message.fromName || "AIV — Assessoria de Imprensa";
+  const fromName = message.fromName || "Agência de Inteligência Vozes";
 
   const headers: Record<string, string> = {};
   if (message.unsubscribeUrl) {
