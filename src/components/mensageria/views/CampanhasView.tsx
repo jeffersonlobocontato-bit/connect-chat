@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { dispatchCampaign } from "@/lib/campaigns.functions";
@@ -89,6 +89,9 @@ export function CampanhasView() {
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [gerando, setGerando] = useState(false);
   const [instrucoes, setInstrucoes] = useState("");
+  const [imagemTopo, setImagemTopo] = useState("");
+  const [enviandoImagem, setEnviandoImagem] = useState(false);
+  const imagemInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: "",
     channel: "whatsapp",
@@ -145,6 +148,7 @@ export function CampanhasView() {
   function resetForm() {
     setEditingId(null);
     setInstrucoes("");
+    setImagemTopo("");
     setForm({
       name: "",
       channel: "whatsapp",
@@ -179,6 +183,38 @@ export function CampanhasView() {
     }));
   }
 
+  async function enviarImagemTopo(file: File) {
+    setEnviandoImagem(true);
+    try {
+      const path = `${crypto.randomUUID()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("campaign-media")
+        .upload(path, file, { contentType: file.type });
+      if (uploadError) throw new Error("Falha ao enviar a imagem");
+      const { data: signed } = await supabase.storage
+        .from("campaign-media")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+      if (!signed?.signedUrl) throw new Error("Falha ao gerar o link da imagem");
+      const { data: userData } = await supabase.auth.getUser();
+      await supabase.from("media_library").insert({
+        file_name: file.name,
+        storage_path: path,
+        public_url: signed.signedUrl,
+        mime_type: file.type,
+        media_type: "IMAGE",
+        file_size_bytes: file.size,
+        created_by: userData.user?.id ?? null,
+      });
+      setImagemTopo(signed.signedUrl);
+      await carregar();
+      toast.success("Imagem enviada — ela será usada no topo do e-mail");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Falha no upload");
+    } finally {
+      setEnviandoImagem(false);
+    }
+  }
+
   async function montarComIA() {
     if (!form.release_id && !form.link_url.trim()) {
       toast.error("Escolha uma matéria publicada ou informe o link do material");
@@ -192,6 +228,7 @@ export function CampanhasView() {
           linkUrl: form.link_url.trim() || null,
           campaignName: form.name.trim() || null,
           instructions: instrucoes.trim() || null,
+          imageUrl: imagemTopo || null,
         },
       });
       setForm((prev) => ({
@@ -207,9 +244,11 @@ export function CampanhasView() {
     }
   }
 
+
   function editar(c: Campaign) {
     setEditingId(c.id);
     setInstrucoes("");
+    setImagemTopo("");
     setForm({
       name: c.name,
       channel: c.channel ?? "whatsapp",
@@ -426,7 +465,48 @@ export function CampanhasView() {
                       </SelectContent>
                     </Select>
 
+                    <Label className="mt-3 block">Imagem do topo do e-mail</Label>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <input
+                        ref={imagemInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void enviarImagemTopo(file);
+                          e.target.value = "";
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={enviandoImagem}
+                        onClick={() => imagemInputRef.current?.click()}
+                      >
+                        {enviandoImagem ? "Enviando..." : "Enviar imagem"}
+                      </Button>
+                      <Input
+                        className="w-72"
+                        placeholder="ou cole a URL da imagem"
+                        value={imagemTopo}
+                        onChange={(e) => setImagemTopo(e.target.value)}
+                      />
+                      {imagemTopo && (
+                        <img
+                          src={imagemTopo}
+                          alt="Prévia da imagem do topo"
+                          className="h-12 w-12 rounded object-cover"
+                        />
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Se ficar em branco, usamos a capa da matéria ou a primeira imagem do link.
+                    </p>
+
                     <Label htmlFor="camp-instrucoes" className="mt-3 block">
+
                       Instruções para a IA (opcional)
                     </Label>
                     <Textarea
