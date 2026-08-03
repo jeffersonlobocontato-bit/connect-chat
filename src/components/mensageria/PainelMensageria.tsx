@@ -8,6 +8,7 @@ import {
   Send,
   BarChart3,
   Settings,
+  ImageIcon,
   LogOut,
 } from "lucide-react";
 import logoNegativo from "@/assets/zapvozes-negativo.png.asset.json";
@@ -18,6 +19,7 @@ import { DashboardView } from "./views/DashboardView";
 import { JornalistasView } from "./views/JornalistasView";
 import { SegmentacaoView } from "./views/SegmentacaoView";
 import { TemplatesView } from "./views/TemplatesView";
+import { MediaLibraryView } from "./views/MediaLibraryView";
 import { CampanhasView } from "./views/CampanhasView";
 import { RelatoriosView } from "./views/RelatoriosView";
 import { ConfiguracoesView } from "./views/ConfiguracoesView";
@@ -27,6 +29,7 @@ const NAV = [
   { key: "jornalistas", label: "Jornalistas", icon: Users },
   { key: "segmentacao", label: "Segmentação", icon: Filter },
   { key: "templates", label: "Templates", icon: FileText },
+  { key: "midia", label: "Biblioteca de mídia", icon: ImageIcon },
   { key: "campanhas", label: "Campanhas", icon: Send },
   { key: "relatorios", label: "Relatórios", icon: BarChart3 },
   { key: "configuracoes", label: "Configurações", icon: Settings },
@@ -145,6 +148,7 @@ export function PainelMensageria() {
           {active === "jornalistas" && <JornalistasView />}
           {active === "segmentacao" && <SegmentacaoView />}
           {active === "templates" && <TemplatesView />}
+          {active === "midia" && <MediaLibraryView />}
           {active === "campanhas" && <CampanhasView />}
           {active === "relatorios" && <RelatoriosView />}
           {active === "configuracoes" && <ConfiguracoesView />}
