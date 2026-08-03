@@ -14,13 +14,8 @@ export const Route = createFileRoute("/api/public/run-scheduled")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const expected = process.env["CRON_SECRET"];
-        if (!expected) {
-          return new Response(JSON.stringify({ ok: false, error: "CRON_SECRET não configurado" }), {
-            status: 500,
-          });
-        }
-        if (request.headers.get("x-cron-secret") !== expected) {
+        const { isAuthorizedCronRequest } = await import("@/lib/cron-auth.server");
+        if (!isAuthorizedCronRequest(request)) {
           return new Response(JSON.stringify({ ok: false, error: "Não autorizado" }), {
             status: 401,
           });
