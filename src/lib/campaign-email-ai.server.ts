@@ -167,16 +167,18 @@ Regras obrigatórias:
     const parsed = JSON.parse(jsonText) as { subject?: string; html?: string };
     if (!parsed.html) return fallback();
 
-    // Rede de segurança: se a IA não incluiu a foto de capa, insere a miniatura
-    // no topo do corpo (com largura fixa, para não pesar no cliente de e-mail).
+    // Garantia: a miniatura da capa sempre aparece no topo do corpo do e-mail.
     let html = parsed.html;
-    if (coverUrl && !/<img/i.test(html)) {
+    if (coverUrl && !html.includes(coverUrl)) {
+      // remove imagens que a IA tenha inventado (links quebrados/expirados)
+      html = html.replace(/<img[^>]*>/gi, "");
       const img = `<img src="${coverUrl}" alt="${title.replace(/"/g, "&quot;")}" width="600" style="width:100%;max-width:600px;height:auto;display:block;border-radius:10px;margin:0 0 18px" />`;
       html = /<h1[\s\S]*?<\/h1>/i.test(html)
         ? html.replace(/(<\/h1>)/i, `$1${img}`)
         : html.replace(/(<div[^>]*>)/i, `$1${img}`);
-      if (!/<img/i.test(html)) html = img + html;
+      if (!html.includes(coverUrl)) html = img + html;
     }
+
 
     return {
       subject: (parsed.subject || title).slice(0, 120),
