@@ -163,8 +163,13 @@ export async function runCampaignDispatch(params: {
   let live = false;
 
   if (channel === "email") {
-    const { sendEmail, renderEmailTemplate, appendUnsubscribeFooter, isEmailLiveMode } =
-      await import("@/lib/email.server");
+    const {
+      sendEmail,
+      renderEmailTemplate,
+      appendUnsubscribeFooter,
+      prependBrandHeader,
+      isEmailLiveMode,
+    } = await import("@/lib/email.server");
     const { generateUnsubscribeToken } = await import("@/lib/unsubscribe.server");
     live = isEmailLiveMode();
 
