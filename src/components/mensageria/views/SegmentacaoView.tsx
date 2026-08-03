@@ -17,7 +17,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  
 } from "@/components/ui/dialog";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
