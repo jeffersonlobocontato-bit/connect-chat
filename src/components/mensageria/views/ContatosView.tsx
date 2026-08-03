@@ -33,10 +33,23 @@ export type Contact = {
   owner_note: string | null;
   tags: string[];
   opt_in_whatsapp: boolean;
+  opt_in_whatsapp_source: string | null;
   opt_in_email: boolean;
+  opt_in_email_source: string | null;
   active: boolean;
   audience: string;
 };
+
+// Prova de consentimento (LGPD): o ônus da prova é de quem trata os dados,
+// então todo opt-in ligado precisa dizer de onde veio.
+const FONTES_CONSENTIMENTO = [
+  "Formulário próprio",
+  "Solicitação por e-mail",
+  "Solicitação por WhatsApp",
+  "Indicação/relacionamento prévio",
+  "Evento presencial",
+  "Cadastro em credenciamento de imprensa",
+];
 
 const EMPTY = {
   name: "",
@@ -51,7 +64,9 @@ const EMPTY = {
   owner_note: "",
   tags: "",
   opt_in_whatsapp: true,
+  opt_in_whatsapp_source: FONTES_CONSENTIMENTO[0]!,
   opt_in_email: true,
+  opt_in_email_source: FONTES_CONSENTIMENTO[0]!,
   active: true,
 };
 
