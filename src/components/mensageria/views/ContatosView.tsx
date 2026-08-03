@@ -402,19 +402,57 @@ export function ContatosView({ audience }: { audience: Audience }) {
                     />
                   </div>
                 ) : null}
-                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                  <span className="text-sm">Opt-in WhatsApp</span>
-                  <Switch
-                    checked={form.opt_in_whatsapp}
-                    onCheckedChange={(v) => setForm({ ...form, opt_in_whatsapp: v })}
-                  />
+                <div className="rounded-lg border border-border px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Opt-in WhatsApp</span>
+                    <Switch
+                      checked={form.opt_in_whatsapp}
+                      onCheckedChange={(v) => setForm({ ...form, opt_in_whatsapp: v })}
+                    />
+                  </div>
+                  {form.opt_in_whatsapp && (
+                    <Select
+                      value={form.opt_in_whatsapp_source}
+                      onValueChange={(v) => setForm({ ...form, opt_in_whatsapp_source: v })}
+                    >
+                      <SelectTrigger className="mt-2 h-8 text-xs">
+                        <SelectValue placeholder="Origem do consentimento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FONTES_CONSENTIMENTO.map((f) => (
+                          <SelectItem key={f} value={f}>
+                            {f}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
-                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                  <span className="text-sm">Opt-in E-mail</span>
-                  <Switch
-                    checked={form.opt_in_email}
-                    onCheckedChange={(v) => setForm({ ...form, opt_in_email: v })}
-                  />
+                <div className="rounded-lg border border-border px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Opt-in E-mail</span>
+                    <Switch
+                      checked={form.opt_in_email}
+                      onCheckedChange={(v) => setForm({ ...form, opt_in_email: v })}
+                    />
+                  </div>
+                  {form.opt_in_email && (
+                    <Select
+                      value={form.opt_in_email_source}
+                      onValueChange={(v) => setForm({ ...form, opt_in_email_source: v })}
+                    >
+                      <SelectTrigger className="mt-2 h-8 text-xs">
+                        <SelectValue placeholder="Origem do consentimento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FONTES_CONSENTIMENTO.map((f) => (
+                          <SelectItem key={f} value={f}>
+                            {f}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
                   <span className="text-sm">Ativo</span>
