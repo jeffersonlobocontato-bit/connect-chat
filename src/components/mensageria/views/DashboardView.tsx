@@ -112,12 +112,13 @@ export function DashboardView() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Base total" value={stats?.total ?? "—"} hint="jornalistas cadastrados" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <KpiCard label="Jornalistas" value={stats?.press ?? "—"} hint="base de imprensa" />
+        <KpiCard label="Leads gerais" value={stats?.leads ?? "—"} hint="relacionamento" />
         <KpiCard
-          label="Com opt-in"
+          label="Opt-in WhatsApp"
           value={stats?.optIn ?? "—"}
-          hint="autorizados a receber releases"
+          hint="autorizados a receber"
         />
         <KpiCard label="Campanhas no mês" value={stats?.campaignsMonth ?? "—"} />
         <KpiCard
