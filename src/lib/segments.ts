@@ -1,12 +1,15 @@
 export type SegmentRule = {
-  field: "outlet" | "region" | "tags";
+  field: "outlet" | "region" | "tags" | "company" | "source" | "stage";
   op: "in" | "contains";
   value: string[] | string;
 };
 
 export type JournalistLike = {
-  outlet: string | null;
-  region: string | null;
+  outlet?: string | null;
+  region?: string | null;
+  company?: string | null;
+  source?: string | null;
+  stage?: string | null;
   tags: string[] | null;
 };
 
@@ -21,21 +24,25 @@ export function matchesRules(journalist: JournalistLike, rules: SegmentRule[]): 
     const current = journalist[rule.field];
     if (!current) return false;
     const wanted = Array.isArray(rule.value) ? rule.value : [rule.value];
-    return wanted.some((item) => item.toLowerCase() === current.toLowerCase());
+    return wanted.some((item) => item.toLowerCase().trim() === current.toLowerCase().trim());
   });
 }
 
+export const RULE_FIELD_LABELS: Record<SegmentRule["field"], string> = {
+  outlet: "Veículo",
+  region: "Região",
+  tags: "Etiqueta",
+  company: "Empresa",
+  source: "Origem",
+  stage: "Estágio",
+};
+
 export function describeRules(rules: SegmentRule[]): string {
-  const labels: Record<SegmentRule["field"], string> = {
-    outlet: "Veículo",
-    region: "Região",
-    tags: "Etiqueta",
-  };
   if (!rules || rules.length === 0) return "Toda a base com opt-in";
   return rules
     .map((rule) => {
       const values = Array.isArray(rule.value) ? rule.value.join(", ") : rule.value;
-      return `${labels[rule.field]}: ${values}`;
+      return `${RULE_FIELD_LABELS[rule.field]}: ${values}`;
     })
     .join(" · ");
 }
