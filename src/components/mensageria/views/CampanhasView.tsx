@@ -424,6 +424,9 @@ export function CampanhasView() {
                   <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
                     {c.channel === "email" ? "E-mail" : "WhatsApp"}
                   </span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                    {AUDIENCE_LABEL[c.audience ?? "press"]}
+                  </span>
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
                   Alvo: {alvoLabel(c)} · criada em{" "}
