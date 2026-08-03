@@ -89,6 +89,9 @@ export function CampanhasView() {
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [gerando, setGerando] = useState(false);
   const [instrucoes, setInstrucoes] = useState("");
+  const [imagemTopo, setImagemTopo] = useState("");
+  const [enviandoImagem, setEnviandoImagem] = useState(false);
+  const imagemInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: "",
     channel: "whatsapp",
