@@ -264,7 +264,23 @@ export function CampanhasView() {
                   )}
                 </div>
                 <div>
-                  <Label>Público-alvo</Label>
+                  <Label>Público</Label>
+                  <Select
+                    value={form.audience}
+                    onValueChange={(v) => setForm({ ...form, audience: v, target: "" })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="press">Imprensa (jornalistas)</SelectItem>
+                      <SelectItem value="lead">Leads gerais</SelectItem>
+                      <SelectItem value="all">Ambos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Alvo</Label>
                   <Select
                     value={form.target}
                     onValueChange={(v) => setForm({ ...form, target: v })}
@@ -273,7 +289,7 @@ export function CampanhasView() {
                       <SelectValue placeholder="Segmento ou lista" />
                     </SelectTrigger>
                     <SelectContent>
-                      {segments.map((s) => (
+                      {segmentosDoPublico.map((s) => (
                         <SelectItem key={s.id} value={`segment:${s.id}`}>
                           Segmento · {s.name}
                         </SelectItem>
@@ -285,6 +301,11 @@ export function CampanhasView() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {segmentosDoPublico.length === 0 && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Nenhum segmento desse público ainda — crie um na aba "Segmentação".
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="camp-link">Link do material (opcional)</Label>
