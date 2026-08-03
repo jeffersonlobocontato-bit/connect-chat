@@ -40,13 +40,21 @@ export function DashboardView() {
       monthStart.setDate(1);
       monthStart.setHours(0, 0, 0, 0);
 
-      const [totalRes, optInRes, campaignsRes, logsRes, wabaRes, recentRes] = await Promise.all([
-        supabase.from("journalists").select("id", { count: "exact", head: true }),
-        supabase
-          .from("journalists")
-          .select("id", { count: "exact", head: true })
-          .eq("opt_in", true)
-          .eq("active", true),
+      const [pressRes, leadsRes, optInRes, campaignsRes, logsRes, wabaRes, recentRes] =
+        await Promise.all([
+          supabase
+            .from("journalists")
+            .select("id", { count: "exact", head: true })
+            .eq("audience", "press"),
+          supabase
+            .from("journalists")
+            .select("id", { count: "exact", head: true })
+            .eq("audience", "lead"),
+          supabase
+            .from("journalists")
+            .select("id", { count: "exact", head: true })
+            .eq("opt_in_whatsapp", true)
+            .eq("active", true),
         supabase
           .from("campaigns")
           .select("id", { count: "exact", head: true })
