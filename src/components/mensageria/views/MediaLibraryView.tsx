@@ -67,7 +67,15 @@ export function MediaLibraryView() {
           continue;
         }
 
-        const { data: publicUrlData } = supabase.storage.from("campaign-media").getPublicUrl(path);
+        // Bucket privado: geramos um link assinado de longa duração para
+        // exibir a prévia e para a Meta baixar o arquivo ao gerar o media_id.
+        const { data: signedData } = await supabase.storage
+          .from("campaign-media")
+          .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+        if (!signedData?.signedUrl) {
+          toast.error(`Falha ao gerar link de ${file.name}`);
+          continue;
+        }
         const { data: userData } = await supabase.auth.getUser();
 
         await supabase.from("media_library").insert({
