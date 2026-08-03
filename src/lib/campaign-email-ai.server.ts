@@ -78,7 +78,7 @@ export async function generateEmailFromRelease(params: {
   if (params.releaseId) {
     const { data: release } = await supabase
       .from("releases")
-      .select("id, title, slug, summary, body_html, cover_media_id, clients(name, slug)")
+      .select("id, title, slug, summary, body_html, cover_media_id, published, clients(name, slug)")
       .eq("id", params.releaseId)
       .single();
     if (!release) throw new Error("Matéria não encontrada");
@@ -100,9 +100,14 @@ export async function generateEmailFromRelease(params: {
         .single();
       if (media?.public_url) {
         // URL estável no nosso domínio (o link assinado do storage expira e é
-        // bloqueado por alguns clientes de e-mail).
-        coverUrl = `${params.origin}/api/public/release-image/${release.id}?inline=1`;
-        downloadUrl = `${params.origin}/api/public/release-image/${release.id}`;
+        // bloqueado por alguns clientes de e-mail). Se a matéria ainda não está
+        // publicada, o proxy devolve 404 — aí usamos a URL direta da mídia.
+        coverUrl = release.published
+          ? `${params.origin}/api/public/release-image/${release.id}?inline=1`
+          : media.public_url;
+        downloadUrl = release.published
+          ? `${params.origin}/api/public/release-image/${release.id}`
+          : media.public_url;
       }
     }
 
@@ -167,16 +172,18 @@ Regras obrigatórias:
     const parsed = JSON.parse(jsonText) as { subject?: string; html?: string };
     if (!parsed.html) return fallback();
 
-    // Rede de segurança: se a IA não incluiu a foto de capa, insere a miniatura
-    // no topo do corpo (com largura fixa, para não pesar no cliente de e-mail).
+    // Garantia: a miniatura da capa sempre aparece no topo do corpo do e-mail.
     let html = parsed.html;
-    if (coverUrl && !/<img/i.test(html)) {
+    if (coverUrl && !html.includes(coverUrl)) {
+      // remove imagens que a IA tenha inventado (links quebrados/expirados)
+      html = html.replace(/<img[^>]*>/gi, "");
       const img = `<img src="${coverUrl}" alt="${title.replace(/"/g, "&quot;")}" width="600" style="width:100%;max-width:600px;height:auto;display:block;border-radius:10px;margin:0 0 18px" />`;
       html = /<h1[\s\S]*?<\/h1>/i.test(html)
         ? html.replace(/(<\/h1>)/i, `$1${img}`)
         : html.replace(/(<div[^>]*>)/i, `$1${img}`);
-      if (!/<img/i.test(html)) html = img + html;
+      if (!html.includes(coverUrl)) html = img + html;
     }
+
 
     return {
       subject: (parsed.subject || title).slice(0, 120),
