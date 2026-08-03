@@ -81,7 +81,7 @@ export function MediaLibraryView() {
         await supabase.from("media_library").insert({
           file_name: file.name,
           storage_path: path,
-          public_url: publicUrlData.publicUrl,
+          public_url: signedData.signedUrl,
           mime_type: file.type,
           media_type: mediaTypeFromMime(file.type),
           file_size_bytes: file.size,
