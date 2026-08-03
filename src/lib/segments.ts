@@ -14,9 +14,9 @@ export function matchesRules(journalist: JournalistLike, rules: SegmentRule[]): 
   if (!rules || rules.length === 0) return true;
   return rules.every((rule) => {
     if (rule.field === "tags") {
-      const tags = journalist.tags ?? [];
+      const tags = (journalist.tags ?? []).map((t) => t.toLowerCase().trim());
       const wanted = Array.isArray(rule.value) ? rule.value : [rule.value];
-      return wanted.some((tag) => tags.includes(tag));
+      return wanted.some((tag) => tags.includes(tag.toLowerCase().trim()));
     }
     const current = journalist[rule.field];
     if (!current) return false;
