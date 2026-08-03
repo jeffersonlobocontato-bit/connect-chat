@@ -500,6 +500,11 @@ export function CampanhasView() {
                         : "Disparar"}
                   </Button>
                 ) : null}
+                {c.status === "DRAFT" || c.status === "FAILED" || c.status === "SCHEDULED" ? (
+                  <Button size="icon" variant="ghost" onClick={() => editar(c)} title="Editar">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                ) : null}
                 <Button size="icon" variant="ghost" onClick={() => remover(c.id)}>
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
