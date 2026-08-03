@@ -16,11 +16,13 @@ export type Database = {
     Tables: {
       campaigns: {
         Row: {
+          channel: string
           created_at: string
           created_by: string | null
           id: string
           link_url: string | null
           list_id: string | null
+          media_id: string | null
           media_type: string | null
           media_url: string | null
           name: string
@@ -32,11 +34,13 @@ export type Database = {
           template_id: string | null
         }
         Insert: {
+          channel?: string
           created_at?: string
           created_by?: string | null
           id?: string
           link_url?: string | null
           list_id?: string | null
+          media_id?: string | null
           media_type?: string | null
           media_url?: string | null
           name: string
@@ -48,11 +52,13 @@ export type Database = {
           template_id?: string | null
         }
         Update: {
+          channel?: string
           created_at?: string
           created_by?: string | null
           id?: string
           link_url?: string | null
           list_id?: string | null
+          media_id?: string | null
           media_type?: string | null
           media_url?: string | null
           name?: string
@@ -69,6 +75,13 @@ export type Database = {
             columns: ["list_id"]
             isOneToOne: false
             referencedRelation: "contact_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media_library"
             referencedColumns: ["id"]
           },
           {
@@ -156,12 +169,14 @@ export type Database = {
           campaign_id: string
           created_at: string
           delivered_at: string | null
+          email: string | null
           error_code: string | null
           error_message: string | null
           id: string
           journalist_id: string | null
-          phone: string
+          phone: string | null
           read_at: string | null
+          resend_message_id: string | null
           sent_at: string | null
           status: string
           wa_message_id: string | null
@@ -170,12 +185,14 @@ export type Database = {
           campaign_id: string
           created_at?: string
           delivered_at?: string | null
+          email?: string | null
           error_code?: string | null
           error_message?: string | null
           id?: string
           journalist_id?: string | null
-          phone: string
+          phone?: string | null
           read_at?: string | null
+          resend_message_id?: string | null
           sent_at?: string | null
           status?: string
           wa_message_id?: string | null
@@ -184,12 +201,14 @@ export type Database = {
           campaign_id?: string
           created_at?: string
           delivered_at?: string | null
+          email?: string | null
           error_code?: string | null
           error_message?: string | null
           id?: string
           journalist_id?: string | null
-          phone?: string
+          phone?: string | null
           read_at?: string | null
+          resend_message_id?: string | null
           sent_at?: string | null
           status?: string
           wa_message_id?: string | null
@@ -215,6 +234,7 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          email: string | null
           id: string
           name: string
           opt_in: boolean
@@ -227,6 +247,7 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          email?: string | null
           id?: string
           name: string
           opt_in?: boolean
@@ -239,6 +260,7 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          email?: string | null
           id?: string
           name?: string
           opt_in?: boolean
@@ -250,40 +272,94 @@ export type Database = {
         }
         Relationships: []
       }
+      media_library: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          file_name: string
+          file_size_bytes: number | null
+          id: string
+          media_type: string
+          meta_media_id: string | null
+          meta_media_uploaded_at: string | null
+          mime_type: string
+          public_url: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          file_name: string
+          file_size_bytes?: number | null
+          id?: string
+          media_type: string
+          meta_media_id?: string | null
+          meta_media_uploaded_at?: string | null
+          mime_type: string
+          public_url: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          file_name?: string
+          file_size_bytes?: number | null
+          id?: string
+          media_type?: string
+          meta_media_id?: string | null
+          meta_media_uploaded_at?: string | null
+          mime_type?: string
+          public_url?: string
+          storage_path?: string
+        }
+        Relationships: []
+      }
       message_templates: {
         Row: {
           body_text: string
           category: string
+          channel: string
           created_at: string
+          html_body: string | null
           id: string
           language: string
           last_used_at: string | null
-          meta_template_name: string
+          meta_template_name: string | null
+          name: string | null
           status: string
+          subject: string | null
           tags: string[]
           usage_count: number
         }
         Insert: {
           body_text: string
           category?: string
+          channel?: string
           created_at?: string
+          html_body?: string | null
           id?: string
           language?: string
           last_used_at?: string | null
-          meta_template_name: string
+          meta_template_name?: string | null
+          name?: string | null
           status?: string
+          subject?: string | null
           tags?: string[]
           usage_count?: number
         }
         Update: {
           body_text?: string
           category?: string
+          channel?: string
           created_at?: string
+          html_body?: string | null
           id?: string
           language?: string
           last_used_at?: string | null
-          meta_template_name?: string
+          meta_template_name?: string | null
+          name?: string | null
           status?: string
+          subject?: string | null
           tags?: string[]
           usage_count?: number
         }
