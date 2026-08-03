@@ -248,6 +248,7 @@ export function CampanhasView() {
   function editar(c: Campaign) {
     setEditingId(c.id);
     setInstrucoes("");
+    setImagemTopo("");
     setForm({
       name: c.name,
       channel: c.channel ?? "whatsapp",
