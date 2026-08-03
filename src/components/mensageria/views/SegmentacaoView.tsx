@@ -94,11 +94,19 @@ export function SegmentacaoView() {
   );
 
   const sugestoes = useMemo(() => {
-    if (field === "tags") return Array.from(new Set(base.flatMap((j) => j.tags))).slice(0, 12);
-    return Array.from(
-      new Set(base.map((j) => (field === "outlet" ? j.outlet : j.region)).filter(Boolean)),
-    ).slice(0, 12) as string[];
-  }, [base, field]);
+    const todos =
+      field === "tags"
+        ? base.flatMap((j) => j.tags ?? [])
+        : (base.map((j) => (field === "outlet" ? j.outlet : j.region)).filter(Boolean) as string[]);
+    const unicos = Array.from(new Set(todos)).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    // Filtra pelo que está sendo digitado (último valor da lista separada por vírgula).
+    const termo = (value.split(",").pop() ?? "").trim().toLowerCase();
+    const filtrados = termo
+      ? unicos.filter((s) => s.toLowerCase().includes(termo))
+      : unicos;
+    return filtrados.slice(0, 12);
+  }, [base, field, value]);
+
 
   function adicionarRegra() {
     const valores = value
