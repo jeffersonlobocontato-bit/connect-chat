@@ -98,25 +98,49 @@ export function SegmentacaoView() {
     setValue("");
   }
 
+  function resetForm() {
+    setEditingId(null);
+    setName("");
+    setDescription("");
+    setRules([]);
+    setValue("");
+    setField("tags");
+  }
+
+  function abrirNovo() {
+    resetForm();
+    setOpen(true);
+  }
+
+  function abrirEdicao(s: Segment) {
+    setEditingId(s.id);
+    setName(s.name);
+    setDescription(s.description ?? "");
+    setRules(s.rules ?? []);
+    setValue("");
+    setOpen(true);
+  }
+
   async function salvar() {
     if (!name.trim()) {
       toast.error("Dê um nome ao segmento");
       return;
     }
-    const { error } = await supabase.from("segments").insert({
+    const payload = {
       name: name.trim(),
       description: description.trim() || null,
       rules: rules as unknown as never,
-    });
+    };
+    const { error } = editingId
+      ? await supabase.from("segments").update(payload).eq("id", editingId)
+      : await supabase.from("segments").insert(payload);
     if (error) {
       toast.error("Erro ao salvar segmento");
       return;
     }
-    toast.success("Segmento criado");
+    toast.success(editingId ? "Segmento atualizado" : "Segmento criado");
     setOpen(false);
-    setName("");
-    setDescription("");
-    setRules([]);
+    resetForm();
     void carregar();
   }
 
