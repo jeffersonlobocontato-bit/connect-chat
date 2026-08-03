@@ -1,0 +1,4 @@
+ALTER TABLE public.campaigns
+  ADD COLUMN IF NOT EXISTS release_id UUID REFERENCES public.releases(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS email_subject TEXT,
+  ADD COLUMN IF NOT EXISTS email_html TEXT;

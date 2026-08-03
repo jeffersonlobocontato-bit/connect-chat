@@ -178,8 +178,24 @@ export async function runCampaignDispatch(params: {
         link: linkParaEnvio ?? "",
         unsubscribe_link: unsubscribeUrl,
       };
-      const subject = renderEmailTemplate(template?.subject ?? "Comunicado da AIV", vars);
-      const htmlBase = renderEmailTemplate(template?.html_body ?? "", vars);
+      // Corpo montado pela IA (a partir da matéria publicada) tem prioridade
+      // sobre o template — e o template só entra se tiver conteúdo de fato.
+      const campanhaHtml = (campaign as { email_html?: string | null }).email_html ?? null;
+      const campanhaSubject = (campaign as { email_subject?: string | null }).email_subject ?? null;
+      const templateHtml = template?.html_body?.trim() ? template.html_body : null;
+      const corpoBruto = campanhaHtml?.trim()
+        ? campanhaHtml
+        : (templateHtml ??
+          `<div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;padding:24px">
+  <p style="font-size:15px;color:#334155">Olá, {{nome}},</p>
+  <p style="font-size:15px;color:#334155">Segue material para pauta.</p>
+  ${linkParaEnvio ? `<p><a href="{{link}}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#0f2c5c;color:#ffffff;text-decoration:none;font-weight:600">Acessar o material</a></p>` : ""}
+</div>`);
+      const subject = renderEmailTemplate(
+        campanhaSubject?.trim() || template?.subject || campaign.name || "Comunicado da AIV",
+        vars,
+      );
+      const htmlBase = renderEmailTemplate(corpoBruto, vars);
       const html = appendUnsubscribeFooter(htmlBase, unsubscribeUrl);
 
       const result = await sendEmail({ to: recipient.email!, subject, html, unsubscribeUrl });
