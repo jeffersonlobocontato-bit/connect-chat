@@ -381,7 +381,9 @@ export function CampanhasView() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Template</Label>
+                  <Label>
+                    Template{form.channel === "email" ? " (opcional se usar a IA)" : ""}
+                  </Label>
                   <Select
                     value={form.template_id}
                     onValueChange={(v) => setForm({ ...form, template_id: v })}
@@ -403,6 +405,93 @@ export function CampanhasView() {
                     </p>
                   )}
                 </div>
+                {form.channel === "email" && (
+                  <div className="rounded-lg border border-border bg-muted/30 p-3">
+                    <Label>Matéria publicada (release)</Label>
+                    <Select
+                      value={form.release_id || "none"}
+                      onValueChange={escolherRelease}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Escolha a matéria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sem matéria (usar só o link)</SelectItem>
+                        {releases.map((r) => (
+                          <SelectItem key={r.id} value={r.id}>
+                            {r.title}
+                            {r.published ? "" : " (rascunho)"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Label htmlFor="camp-instrucoes" className="mt-3 block">
+                      Instruções para a IA (opcional)
+                    </Label>
+                    <Textarea
+                      id="camp-instrucoes"
+                      rows={2}
+                      value={instrucoes}
+                      onChange={(e) => setInstrucoes(e.target.value)}
+                      placeholder="Ex.: tom mais direto, destacar o dado de crescimento e convidar para entrevista."
+                    />
+
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="mt-3"
+                      onClick={montarComIA}
+                      disabled={gerando}
+                    >
+                      <Sparkles className="mr-1.5 h-4 w-4" />
+                      {gerando ? "Montando..." : "Montar e-mail com IA"}
+                    </Button>
+
+                    {form.email_html && (
+                      <div className="mt-3 space-y-2">
+                        <div>
+                          <Label htmlFor="camp-assunto">Assunto</Label>
+                          <Input
+                            id="camp-assunto"
+                            value={form.email_subject}
+                            onChange={(e) =>
+                              setForm({ ...form, email_subject: e.target.value })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label>Prévia do corpo</Label>
+                          <div
+                            className="mt-1 max-h-64 overflow-y-auto rounded-md border border-border bg-white p-3"
+                            // eslint-disable-next-line react/no-danger
+                            dangerouslySetInnerHTML={{ __html: form.email_html }}
+                          />
+                        </div>
+                        <details>
+                          <summary className="cursor-pointer text-xs text-muted-foreground">
+                            Editar HTML manualmente
+                          </summary>
+                          <Textarea
+                            rows={8}
+                            className="mt-2 font-mono text-xs"
+                            value={form.email_html}
+                            onChange={(e) => setForm({ ...form, email_html: e.target.value })}
+                          />
+                        </details>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setForm({ ...form, email_html: "", email_subject: "" })}
+                        >
+                          Descartar corpo gerado
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div>
                   <Label>Público</Label>
                   <Select
