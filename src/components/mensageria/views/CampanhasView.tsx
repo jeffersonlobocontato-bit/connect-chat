@@ -349,7 +349,7 @@ export function CampanhasView() {
                 Nova campanha
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingId ? "Editar campanha" : "Nova campanha"}</DialogTitle>
               </DialogHeader>
