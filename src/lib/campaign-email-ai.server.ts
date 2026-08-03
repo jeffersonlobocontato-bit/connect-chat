@@ -98,9 +98,14 @@ export async function generateEmailFromRelease(params: {
         .select("public_url")
         .eq("id", release.cover_media_id)
         .single();
-      coverUrl = media?.public_url ?? null;
-      if (coverUrl) downloadUrl = `${params.origin}/api/public/release-image/${release.id}`;
+      if (media?.public_url) {
+        // URL estável no nosso domínio (o link assinado do storage expira e é
+        // bloqueado por alguns clientes de e-mail).
+        coverUrl = `${params.origin}/api/public/release-image/${release.id}?inline=1`;
+        downloadUrl = `${params.origin}/api/public/release-image/${release.id}`;
+      }
     }
+
   }
 
   const apiKey = process.env["LOVABLE_API_KEY"];
