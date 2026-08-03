@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Users,
+  UserPlus,
   Filter,
   FileText,
   Send,
@@ -18,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { DashboardView } from "./views/DashboardView";
 import { JornalistasView } from "./views/JornalistasView";
+import { LeadsView } from "./views/LeadsView";
 import { SegmentacaoView } from "./views/SegmentacaoView";
 import { TemplatesView } from "./views/TemplatesView";
 import { MediaLibraryView } from "./views/MediaLibraryView";
@@ -29,6 +31,7 @@ import { ConfiguracoesView } from "./views/ConfiguracoesView";
 const NAV = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "jornalistas", label: "Jornalistas", icon: Users },
+  { key: "leads", label: "Leads gerais", icon: UserPlus },
   { key: "segmentacao", label: "Segmentação", icon: Filter },
   { key: "templates", label: "Templates", icon: FileText },
   { key: "midia", label: "Biblioteca de mídia", icon: ImageIcon },
@@ -149,6 +152,7 @@ export function PainelMensageria() {
         <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8">
           {active === "dashboard" && <DashboardView />}
           {active === "jornalistas" && <JornalistasView />}
+          {active === "leads" && <LeadsView />}
           {active === "segmentacao" && <SegmentacaoView />}
           {active === "templates" && <TemplatesView />}
           {active === "midia" && <MediaLibraryView />}

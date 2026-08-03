@@ -6,7 +6,8 @@ import { Activity, TriangleAlert } from "lucide-react";
 import { KpiCard, PageHeader, StatusBadge } from "../ui-bits";
 
 type Stats = {
-  total: number;
+  press: number;
+  leads: number;
   optIn: number;
   campaignsMonth: number;
   readRate: number;
@@ -39,25 +40,33 @@ export function DashboardView() {
       monthStart.setDate(1);
       monthStart.setHours(0, 0, 0, 0);
 
-      const [totalRes, optInRes, campaignsRes, logsRes, wabaRes, recentRes] = await Promise.all([
-        supabase.from("journalists").select("id", { count: "exact", head: true }),
-        supabase
-          .from("journalists")
-          .select("id", { count: "exact", head: true })
-          .eq("opt_in", true)
-          .eq("active", true),
-        supabase
-          .from("campaigns")
-          .select("id", { count: "exact", head: true })
-          .gte("created_at", monthStart.toISOString()),
-        supabase.from("dispatch_logs").select("status"),
-        supabase.from("waba_config").select("*").eq("active", true).limit(1).maybeSingle(),
-        supabase
-          .from("campaigns")
-          .select("id, name, status, created_at")
-          .order("created_at", { ascending: false })
-          .limit(5),
-      ]);
+      const [pressRes, leadsRes, optInRes, campaignsRes, logsRes, wabaRes, recentRes] =
+        await Promise.all([
+          supabase
+            .from("journalists")
+            .select("id", { count: "exact", head: true })
+            .eq("audience", "press"),
+          supabase
+            .from("journalists")
+            .select("id", { count: "exact", head: true })
+            .eq("audience", "lead"),
+          supabase
+            .from("journalists")
+            .select("id", { count: "exact", head: true })
+            .eq("opt_in_whatsapp", true)
+            .eq("active", true),
+          supabase
+            .from("campaigns")
+            .select("id", { count: "exact", head: true })
+            .gte("created_at", monthStart.toISOString()),
+          supabase.from("dispatch_logs").select("status"),
+          supabase.from("waba_config").select("*").eq("active", true).limit(1).maybeSingle(),
+          supabase
+            .from("campaigns")
+            .select("id, name, status, created_at")
+            .order("created_at", { ascending: false })
+            .limit(5),
+        ]);
 
       if (cancelled) return;
 
@@ -66,7 +75,8 @@ export function DashboardView() {
       const read = logs.filter((l) => l.status === "READ").length;
 
       setStats({
-        total: totalRes.count ?? 0,
+        press: pressRes.count ?? 0,
+        leads: leadsRes.count ?? 0,
         optIn: optInRes.count ?? 0,
         campaignsMonth: campaignsRes.count ?? 0,
         readRate: delivered > 0 ? Math.round((read / delivered) * 100) : 0,
@@ -102,12 +112,13 @@ export function DashboardView() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="Base total" value={stats?.total ?? "—"} hint="jornalistas cadastrados" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <KpiCard label="Jornalistas" value={stats?.press ?? "—"} hint="base de imprensa" />
+        <KpiCard label="Leads gerais" value={stats?.leads ?? "—"} hint="relacionamento" />
         <KpiCard
-          label="Com opt-in"
+          label="Opt-in WhatsApp"
           value={stats?.optIn ?? "—"}
-          hint="autorizados a receber releases"
+          hint="autorizados a receber"
         />
         <KpiCard label="Campanhas no mês" value={stats?.campaignsMonth ?? "—"} />
         <KpiCard

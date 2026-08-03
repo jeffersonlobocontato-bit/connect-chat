@@ -37,6 +37,7 @@ type Campaign = {
   list_id: string | null;
   media_id: string | null;
   channel: string;
+  audience: string;
 };
 
 type MediaAsset = {
@@ -53,10 +54,18 @@ type Template = {
   channel: string;
 };
 
+const AUDIENCE_LABEL: Record<string, string> = {
+  press: "Imprensa",
+  lead: "Leads",
+  all: "Imprensa + Leads",
+};
+
 export function CampanhasView() {
   const [rows, setRows] = useState<Campaign[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [segments, setSegments] = useState<Array<{ id: string; name: string }>>([]);
+  const [segments, setSegments] = useState<
+    Array<{ id: string; name: string; audience: string }>
+  >([]);
   const [lists, setLists] = useState<Array<{ id: string; name: string }>>([]);
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
   const [open, setOpen] = useState(false);
@@ -64,6 +73,7 @@ export function CampanhasView() {
   const [form, setForm] = useState({
     name: "",
     channel: "whatsapp",
+    audience: "press",
     template_id: "",
     target: "",
     link_url: "",
@@ -73,6 +83,9 @@ export function CampanhasView() {
   });
   const disparar = useServerFn(dispatchCampaign);
   const templatesDoCanal = templates.filter((t) => t.channel === form.channel);
+  const segmentosDoPublico = segments.filter(
+    (s) => form.audience === "all" || s.audience === form.audience,
+  );
 
   async function carregar() {
     const [c, t, s, l, m] = await Promise.all([
@@ -81,7 +94,7 @@ export function CampanhasView() {
         .from("message_templates")
         .select("id, meta_template_name, name, channel")
         .order("name"),
-      supabase.from("segments").select("id, name").order("name"),
+      supabase.from("segments").select("id, name, audience").order("name"),
       supabase.from("contact_lists").select("id, name").order("name"),
       supabase
         .from("media_library")
@@ -90,7 +103,7 @@ export function CampanhasView() {
     ]);
     setRows((c.data ?? []) as Campaign[]);
     setTemplates((t.data ?? []) as Template[]);
-    setSegments(s.data ?? []);
+    setSegments((s.data ?? []) as Array<{ id: string; name: string; audience: string }>);
     setLists(l.data ?? []);
     setMediaAssets((m.data ?? []) as MediaAsset[]);
   }
@@ -123,6 +136,7 @@ export function CampanhasView() {
     const { error } = await supabase.from("campaigns").insert({
       name: form.name.trim(),
       channel: form.channel,
+      audience: form.audience,
       template_id: form.template_id,
       segment_id: kind === "segment" ? id! : null,
       list_id: kind === "list" ? id! : null,
@@ -141,6 +155,7 @@ export function CampanhasView() {
     setForm({
       name: "",
       channel: "whatsapp",
+      audience: "press",
       template_id: "",
       target: "",
       link_url: "",
@@ -249,7 +264,23 @@ export function CampanhasView() {
                   )}
                 </div>
                 <div>
-                  <Label>Público-alvo</Label>
+                  <Label>Público</Label>
+                  <Select
+                    value={form.audience}
+                    onValueChange={(v) => setForm({ ...form, audience: v, target: "" })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="press">Imprensa (jornalistas)</SelectItem>
+                      <SelectItem value="lead">Leads gerais</SelectItem>
+                      <SelectItem value="all">Ambos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Alvo</Label>
                   <Select
                     value={form.target}
                     onValueChange={(v) => setForm({ ...form, target: v })}
@@ -258,7 +289,7 @@ export function CampanhasView() {
                       <SelectValue placeholder="Segmento ou lista" />
                     </SelectTrigger>
                     <SelectContent>
-                      {segments.map((s) => (
+                      {segmentosDoPublico.map((s) => (
                         <SelectItem key={s.id} value={`segment:${s.id}`}>
                           Segmento · {s.name}
                         </SelectItem>
@@ -270,6 +301,11 @@ export function CampanhasView() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {segmentosDoPublico.length === 0 && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Nenhum segmento desse público ainda — crie um na aba "Segmentação".
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="camp-link">Link do material (opcional)</Label>
@@ -387,6 +423,9 @@ export function CampanhasView() {
                   <StatusBadge status={c.status} />
                   <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
                     {c.channel === "email" ? "E-mail" : "WhatsApp"}
+                  </span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                    {AUDIENCE_LABEL[c.audience ?? "press"]}
                   </span>
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">

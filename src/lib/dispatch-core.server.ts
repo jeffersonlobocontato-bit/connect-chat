@@ -26,6 +26,7 @@ export async function runCampaignDispatch(params: {
   }
 
   const channel = campaign.channel ?? "whatsapp";
+  const audience = (campaign as { audience?: string }).audience ?? "press";
   const optInField = channel === "email" ? "opt_in_email" : "opt_in_whatsapp";
 
   type Recipient = {
@@ -37,6 +38,7 @@ export async function runCampaignDispatch(params: {
   };
   type JournalistRow = Recipient & {
     active: boolean;
+    audience: string | null;
     opt_in_whatsapp: boolean;
     opt_in_email: boolean;
   };
@@ -45,28 +47,62 @@ export async function runCampaignDispatch(params: {
   if (campaign.list_id) {
     const { data: members } = await supabase
       .from("contact_list_members")
-      .select("journalists(id, name, phone, email, outlet, active, opt_in_whatsapp, opt_in_email)")
+      .select(
+        "journalists(id, name, phone, email, outlet, active, audience, opt_in_whatsapp, opt_in_email)",
+      )
       .eq("list_id", campaign.list_id);
     recipients = (members ?? [])
       .map((row) => row.journalists as unknown as JournalistRow | null)
       .filter((j): j is JournalistRow => {
         if (!j || !j.active) return false;
+        if (audience !== "all" && (j.audience ?? "press") !== audience) return false;
         return channel === "email" ? j.opt_in_email : j.opt_in_whatsapp;
       })
       .map((j) => ({ id: j.id, phone: j.phone, name: j.name, email: j.email, outlet: j.outlet }));
   } else if (campaign.segment_id) {
     const { data: segment } = await supabase
       .from("segments")
-      .select("rules")
+      .select("rules, audience")
       .eq("id", campaign.segment_id)
       .single();
-    const { data: journalists } = await supabase
-      .from("journalists")
-      .select("id, name, phone, email, outlet, region, tags")
-      .eq("active", true)
-      .eq(optInField, true);
-    const rules = (segment?.rules ?? []) as never;
-    recipients = (journalists ?? [])
+
+    // O público do segmento manda: uma campanha "ambos" com segmento de leads
+    // continua falando só com leads.
+    const segmentAudience = (segment as { audience?: string } | null)?.audience ?? null;
+    const effectiveAudience = segmentAudience ?? (audience === "all" ? null : audience);
+
+    // PostgREST devolve no máximo 1.000 linhas por requisição — pagina até o fim.
+    const pageSize = 1000;
+    type SegmentRow = {
+      id: string;
+      name: string;
+      phone: string;
+      email: string | null;
+      outlet: string | null;
+      region: string | null;
+      tags: string[] | null;
+      company: string | null;
+      source: string | null;
+      stage: string | null;
+    };
+    const todos: SegmentRow[] = [];
+    for (let page = 0; ; page += 1) {
+      let query = supabase
+        .from("journalists")
+        .select("id, name, phone, email, outlet, region, tags, company, source, stage")
+        .eq("active", true)
+        .eq(optInField, true);
+      if (effectiveAudience) query = query.eq("audience", effectiveAudience);
+      const { data, error } = await query
+        .order("id")
+        .range(page * pageSize, page * pageSize + pageSize - 1);
+      if (error || !data || data.length === 0) break;
+      todos.push(...(data as unknown as SegmentRow[]));
+      if (data.length < pageSize) break;
+    }
+
+    const rules = ((segment?.rules ?? []) as unknown) as never;
+    recipients = todos
       .filter((j) => matchesRules(j, rules))
       .map((j) => ({ id: j.id, phone: j.phone, name: j.name, email: j.email, outlet: j.outlet }));
   }
