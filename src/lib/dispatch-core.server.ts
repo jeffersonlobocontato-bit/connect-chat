@@ -196,7 +196,7 @@ export async function runCampaignDispatch(params: {
         vars,
       );
       const htmlBase = renderEmailTemplate(corpoBruto, vars);
-      const html = appendUnsubscribeFooter(htmlBase, unsubscribeUrl);
+      const html = appendUnsubscribeFooter(prependBrandHeader(htmlBase), unsubscribeUrl);
 
       const result = await sendEmail({ to: recipient.email!, subject, html, unsubscribeUrl });
       const now = new Date().toISOString();
