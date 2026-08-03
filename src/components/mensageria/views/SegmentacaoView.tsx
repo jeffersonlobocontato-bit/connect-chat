@@ -250,7 +250,11 @@ export function SegmentacaoView() {
                         <button
                           key={s}
                           type="button"
-                          onClick={() => setValue(value ? `${value}, ${s}` : s)}
+                          onClick={() => {
+                            const partes = value.split(",");
+                            partes[partes.length - 1] = ` ${s}`;
+                            setValue(partes.join(",").trim().replace(/^,\s*/, ""));
+                          }}
                           className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:bg-muted"
                         >
                           {s}
