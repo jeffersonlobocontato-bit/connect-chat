@@ -94,7 +94,7 @@ export function CampanhasView() {
         .from("message_templates")
         .select("id, meta_template_name, name, channel")
         .order("name"),
-      supabase.from("segments").select("id, name").order("name"),
+      supabase.from("segments").select("id, name, audience").order("name"),
       supabase.from("contact_lists").select("id, name").order("name"),
       supabase
         .from("media_library")
@@ -103,7 +103,7 @@ export function CampanhasView() {
     ]);
     setRows((c.data ?? []) as Campaign[]);
     setTemplates((t.data ?? []) as Template[]);
-    setSegments(s.data ?? []);
+    setSegments((s.data ?? []) as Array<{ id: string; name: string; audience: string }>);
     setLists(l.data ?? []);
     setMediaAssets((m.data ?? []) as MediaAsset[]);
   }
@@ -136,6 +136,7 @@ export function CampanhasView() {
     const { error } = await supabase.from("campaigns").insert({
       name: form.name.trim(),
       channel: form.channel,
+      audience: form.audience,
       template_id: form.template_id,
       segment_id: kind === "segment" ? id! : null,
       list_id: kind === "list" ? id! : null,
@@ -154,6 +155,7 @@ export function CampanhasView() {
     setForm({
       name: "",
       channel: "whatsapp",
+      audience: "press",
       template_id: "",
       target: "",
       link_url: "",
