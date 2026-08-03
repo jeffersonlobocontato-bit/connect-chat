@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { describeRules, matchesRules, type SegmentRule } from "@/lib/segments";
 import { EmptyState, PageHeader } from "../ui-bits";
