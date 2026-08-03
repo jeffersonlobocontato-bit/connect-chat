@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { dispatchCampaign } from "@/lib/campaigns.functions";
+import { generateCampaignEmail } from "@/lib/campaign-ai.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -20,7 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Pencil, Plus, Send, Trash2 } from "lucide-react";
+import { Pencil, Plus, Send, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState, PageHeader, StatusBadge } from "../ui-bits";
 
@@ -38,7 +40,19 @@ type Campaign = {
   media_id: string | null;
   channel: string;
   audience: string;
+  release_id: string | null;
+  email_subject: string | null;
+  email_html: string | null;
 };
+
+type ReleaseOption = {
+  id: string;
+  title: string;
+  slug: string;
+  published: boolean;
+  client_id: string;
+};
+
 
 type MediaAsset = {
   id: string;
