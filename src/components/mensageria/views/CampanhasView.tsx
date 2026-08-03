@@ -148,6 +148,7 @@ export function CampanhasView() {
   function resetForm() {
     setEditingId(null);
     setInstrucoes("");
+    setImagemTopo("");
     setForm({
       name: "",
       channel: "whatsapp",
