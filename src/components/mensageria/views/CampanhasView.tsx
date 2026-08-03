@@ -30,6 +30,7 @@ type Campaign = {
   status: string;
   created_at: string;
   sent_at: string | null;
+  scheduled_at: string | null;
   link_url: string | null;
   template_id: string | null;
   segment_id: string | null;
@@ -67,6 +68,8 @@ export function CampanhasView() {
     target: "",
     link_url: "",
     media_id: "",
+    scheduleMode: "now",
+    scheduled_at: "",
   });
   const disparar = useServerFn(dispatchCampaign);
   const templatesDoCanal = templates.filter((t) => t.channel === form.channel);
@@ -109,9 +112,14 @@ export function CampanhasView() {
       toast.error("Escolha o público-alvo");
       return;
     }
+    if (form.scheduleMode === "later" && !form.scheduled_at) {
+      toast.error("Escolha a data e hora do agendamento");
+      return;
+    }
     const [kind, id] = form.target.split(":");
     const { data: userData } = await supabase.auth.getUser();
 
+    const isScheduled = form.scheduleMode === "later";
     const { error } = await supabase.from("campaigns").insert({
       name: form.name.trim(),
       channel: form.channel,
@@ -120,14 +128,15 @@ export function CampanhasView() {
       list_id: kind === "list" ? id! : null,
       link_url: form.link_url.trim() || null,
       media_id: form.channel === "whatsapp" ? form.media_id || null : null,
-      status: "DRAFT",
+      status: isScheduled ? "SCHEDULED" : "DRAFT",
+      scheduled_at: isScheduled ? new Date(form.scheduled_at).toISOString() : null,
       created_by: userData.user?.id ?? null,
     });
     if (error) {
       toast.error("Erro ao criar campanha");
       return;
     }
-    toast.success("Campanha criada como rascunho");
+    toast.success(isScheduled ? "Campanha agendada" : "Campanha criada como rascunho");
     setOpen(false);
     setForm({
       name: "",
@@ -136,6 +145,8 @@ export function CampanhasView() {
       target: "",
       link_url: "",
       media_id: "",
+      scheduleMode: "now",
+      scheduled_at: "",
     });
     void carregar();
   }
@@ -318,12 +329,43 @@ export function CampanhasView() {
                     )}
                   </div>
                 )}
+                <div>
+                  <Label>Envio</Label>
+                  <Select
+                    value={form.scheduleMode}
+                    onValueChange={(v) => setForm({ ...form, scheduleMode: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="now">Disparar agora</SelectItem>
+                      <SelectItem value="later">Agendar</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {form.scheduleMode === "later" && (
+                  <div>
+                    <Label htmlFor="camp-agenda">Data e hora</Label>
+                    <Input
+                      id="camp-agenda"
+                      type="datetime-local"
+                      value={form.scheduled_at}
+                      onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })}
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Requer um cron externo configurado chamando /api/public/run-scheduled.
+                    </p>
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={salvar}>Criar rascunho</Button>
+                <Button onClick={salvar}>
+                  {form.scheduleMode === "later" ? "Agendar campanha" : "Criar rascunho"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -350,14 +392,21 @@ export function CampanhasView() {
                 <div className="mt-1 text-xs text-muted-foreground">
                   Alvo: {alvoLabel(c)} · criada em{" "}
                   {new Date(c.created_at).toLocaleDateString("pt-BR")}
+                  {c.status === "SCHEDULED" && c.scheduled_at
+                    ? ` · agendada para ${new Date(c.scheduled_at).toLocaleString("pt-BR")}`
+                    : ""}
                   {c.sent_at ? ` · enviada em ${new Date(c.sent_at).toLocaleString("pt-BR")}` : ""}
                 </div>
               </div>
               <div className="flex gap-2">
-                {c.status === "DRAFT" || c.status === "FAILED" ? (
+                {c.status === "DRAFT" || c.status === "FAILED" || c.status === "SCHEDULED" ? (
                   <Button size="sm" onClick={() => enviar(c.id)} disabled={sendingId === c.id}>
                     <Send className="mr-1.5 h-4 w-4" />
-                    {sendingId === c.id ? "Enviando..." : "Disparar"}
+                    {sendingId === c.id
+                      ? "Enviando..."
+                      : c.status === "SCHEDULED"
+                        ? "Disparar agora"
+                        : "Disparar"}
                   </Button>
                 ) : null}
                 <Button size="icon" variant="ghost" onClick={() => remover(c.id)}>

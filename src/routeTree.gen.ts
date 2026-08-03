@@ -13,8 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as ApiPublicResendWebhookRouteImport } from './routes/api/public/resend-webhook'
+import { Route as ApiPublicRunScheduledRouteImport } from './routes/api/public/run-scheduled'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp-webhook'
 import { Route as ApiPublicRCodeRouteImport } from './routes/api/public/r.$code'
+import { Route as ApiPublicUnsubscribeTokenRouteImport } from './routes/api/public/unsubscribe.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,6 +38,16 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicResendWebhookRoute = ApiPublicResendWebhookRouteImport.update({
+  id: '/api/public/resend-webhook',
+  path: '/api/public/resend-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicRunScheduledRoute = ApiPublicRunScheduledRouteImport.update({
+  id: '/api/public/run-scheduled',
+  path: '/api/public/run-scheduled',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWhatsappWebhookRoute =
   ApiPublicWhatsappWebhookRouteImport.update({
     id: '/api/public/whatsapp-webhook',
@@ -46,20 +59,32 @@ const ApiPublicRCodeRoute = ApiPublicRCodeRouteImport.update({
   path: '/api/public/r/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicUnsubscribeTokenRoute =
+  ApiPublicUnsubscribeTokenRouteImport.update({
+    id: '/api/public/unsubscribe/$token',
+    path: '/api/public/unsubscribe/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/api/public/resend-webhook': typeof ApiPublicResendWebhookRoute
+  '/api/public/run-scheduled': typeof ApiPublicRunScheduledRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
   '/api/public/r/$code': typeof ApiPublicRCodeRoute
+  '/api/public/unsubscribe/$token': typeof ApiPublicUnsubscribeTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/api/public/resend-webhook': typeof ApiPublicResendWebhookRoute
+  '/api/public/run-scheduled': typeof ApiPublicRunScheduledRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
   '/api/public/r/$code': typeof ApiPublicRCodeRoute
+  '/api/public/unsubscribe/$token': typeof ApiPublicUnsubscribeTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -67,8 +92,11 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/api/public/resend-webhook': typeof ApiPublicResendWebhookRoute
+  '/api/public/run-scheduled': typeof ApiPublicRunScheduledRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
   '/api/public/r/$code': typeof ApiPublicRCodeRoute
+  '/api/public/unsubscribe/$token': typeof ApiPublicUnsubscribeTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -76,31 +104,43 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/painel'
+    | '/api/public/resend-webhook'
+    | '/api/public/run-scheduled'
     | '/api/public/whatsapp-webhook'
     | '/api/public/r/$code'
+    | '/api/public/unsubscribe/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/painel'
+    | '/api/public/resend-webhook'
+    | '/api/public/run-scheduled'
     | '/api/public/whatsapp-webhook'
     | '/api/public/r/$code'
+    | '/api/public/unsubscribe/$token'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/painel'
+    | '/api/public/resend-webhook'
+    | '/api/public/run-scheduled'
     | '/api/public/whatsapp-webhook'
     | '/api/public/r/$code'
+    | '/api/public/unsubscribe/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicResendWebhookRoute: typeof ApiPublicResendWebhookRoute
+  ApiPublicRunScheduledRoute: typeof ApiPublicRunScheduledRoute
   ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
   ApiPublicRCodeRoute: typeof ApiPublicRCodeRoute
+  ApiPublicUnsubscribeTokenRoute: typeof ApiPublicUnsubscribeTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -133,6 +173,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/resend-webhook': {
+      id: '/api/public/resend-webhook'
+      path: '/api/public/resend-webhook'
+      fullPath: '/api/public/resend-webhook'
+      preLoaderRoute: typeof ApiPublicResendWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/run-scheduled': {
+      id: '/api/public/run-scheduled'
+      path: '/api/public/run-scheduled'
+      fullPath: '/api/public/run-scheduled'
+      preLoaderRoute: typeof ApiPublicRunScheduledRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/whatsapp-webhook': {
       id: '/api/public/whatsapp-webhook'
       path: '/api/public/whatsapp-webhook'
@@ -145,6 +199,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/r/$code'
       fullPath: '/api/public/r/$code'
       preLoaderRoute: typeof ApiPublicRCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/unsubscribe/$token': {
+      id: '/api/public/unsubscribe/$token'
+      path: '/api/public/unsubscribe/$token'
+      fullPath: '/api/public/unsubscribe/$token'
+      preLoaderRoute: typeof ApiPublicUnsubscribeTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -165,8 +226,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicResendWebhookRoute: ApiPublicResendWebhookRoute,
+  ApiPublicRunScheduledRoute: ApiPublicRunScheduledRoute,
   ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
   ApiPublicRCodeRoute: ApiPublicRCodeRoute,
+  ApiPublicUnsubscribeTokenRoute: ApiPublicUnsubscribeTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -12,14 +12,40 @@ export function isEmailLiveMode(): boolean {
   return Boolean(process.env["RESEND_API_KEY"]);
 }
 
+/**
+ * Teto de envios de e-mail por dia — trava de segurança pro plano Free do
+ * Resend (100/dia). Configurável via RESEND_DAILY_LIMIT quando o plano for
+ * outro; sem a env, assume o teto mais conservador.
+ */
+export function getEmailDailyLimit(): number {
+  const raw = process.env["RESEND_DAILY_LIMIT"];
+  const parsed = raw ? Number(raw) : NaN;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 100;
+}
+
 export type OutboundEmail = {
   to: string;
   subject: string;
   html: string;
   fromName?: string | undefined;
+  unsubscribeUrl?: string | undefined;
 };
 
 const DEFAULT_FROM_ADDRESS = "releases@news.aivozes.com.br";
+
+/**
+ * Rodapé de descadastro anexado a TODO e-mail, independente do template —
+ * compliance não pode depender de o autor do template lembrar de incluir
+ * a variável {{unsubscribe_link}}.
+ */
+export function appendUnsubscribeFooter(html: string, unsubscribeUrl: string): string {
+  return `${html}
+<hr style="margin-top:24px;border:none;border-top:1px solid #e2e8f0" />
+<p style="font-size:12px;color:#94a3b8;margin-top:12px">
+  Você recebeu este e-mail porque faz parte da base de imprensa da AIV.
+  <a href="${unsubscribeUrl}" style="color:#94a3b8">Não quero mais receber</a>.
+</p>`;
+}
 
 export async function sendEmail(message: OutboundEmail): Promise<EmailSendResult> {
   if (!isEmailLiveMode()) {
@@ -31,6 +57,12 @@ export async function sendEmail(message: OutboundEmail): Promise<EmailSendResult
   const apiKey = process.env["RESEND_API_KEY"]!;
   const fromAddress = process.env["RESEND_FROM_ADDRESS"] || DEFAULT_FROM_ADDRESS;
   const fromName = message.fromName || "AIV — Assessoria de Imprensa";
+
+  const headers: Record<string, string> = {};
+  if (message.unsubscribeUrl) {
+    headers["List-Unsubscribe"] = `<${message.unsubscribeUrl}>`;
+    headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+  }
 
   try {
     const response = await fetch("https://api.resend.com/emails", {
@@ -44,6 +76,7 @@ export async function sendEmail(message: OutboundEmail): Promise<EmailSendResult
         to: [message.to],
         subject: message.subject,
         html: message.html,
+        headers: Object.keys(headers).length > 0 ? headers : undefined,
       }),
     });
 

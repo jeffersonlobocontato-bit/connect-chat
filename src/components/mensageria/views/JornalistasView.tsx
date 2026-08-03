@@ -26,7 +26,8 @@ type Journalist = {
   role_title: string | null;
   region: string | null;
   tags: string[];
-  opt_in: boolean;
+  opt_in_whatsapp: boolean;
+  opt_in_email: boolean;
   active: boolean;
 };
 
@@ -38,7 +39,8 @@ const EMPTY = {
   role_title: "",
   region: "",
   tags: "",
-  opt_in: true,
+  opt_in_whatsapp: true,
+  opt_in_email: true,
   active: true,
 };
 
@@ -79,7 +81,8 @@ export function JornalistasView() {
       role_title: j.role_title ?? "",
       region: j.region ?? "",
       tags: j.tags.join(", "),
-      opt_in: j.opt_in,
+      opt_in_whatsapp: j.opt_in_whatsapp,
+      opt_in_email: j.opt_in_email,
       active: j.active,
     });
     setOpen(true);
@@ -112,7 +115,8 @@ export function JornalistasView() {
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
-      opt_in: form.opt_in,
+      opt_in_whatsapp: form.opt_in_whatsapp,
+      opt_in_email: form.opt_in_email,
       active: form.active,
     };
 
@@ -229,10 +233,17 @@ export function JornalistasView() {
                   />
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                  <span className="text-sm">Opt-in</span>
+                  <span className="text-sm">Opt-in WhatsApp</span>
                   <Switch
-                    checked={form.opt_in}
-                    onCheckedChange={(v) => setForm({ ...form, opt_in: v })}
+                    checked={form.opt_in_whatsapp}
+                    onCheckedChange={(v) => setForm({ ...form, opt_in_whatsapp: v })}
+                  />
+                </div>
+                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+                  <span className="text-sm">Opt-in E-mail</span>
+                  <Switch
+                    checked={form.opt_in_email}
+                    onCheckedChange={(v) => setForm({ ...form, opt_in_email: v })}
                   />
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
@@ -277,7 +288,8 @@ export function JornalistasView() {
                 <th className="px-4 py-3">Veículo</th>
                 <th className="px-4 py-3">Região</th>
                 <th className="px-4 py-3">Etiquetas</th>
-                <th className="px-4 py-3">Opt-in</th>
+                <th className="px-4 py-3">Opt-in WhatsApp</th>
+                <th className="px-4 py-3">Opt-in E-mail</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -309,10 +321,23 @@ export function JornalistasView() {
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs ${
-                        j.opt_in ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"
+                        j.opt_in_whatsapp
+                          ? "bg-success/15 text-success"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {j.opt_in ? "Sim" : "Não"}
+                      {j.opt_in_whatsapp ? "Sim" : "Não"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs ${
+                        j.opt_in_email
+                          ? "bg-success/15 text-success"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {j.opt_in_email ? "Sim" : "Não"}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">

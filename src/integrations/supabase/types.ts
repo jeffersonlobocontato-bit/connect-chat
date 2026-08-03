@@ -230,14 +230,50 @@ export type Database = {
           },
         ]
       }
+      email_events: {
+        Row: {
+          created_at: string
+          dispatch_log_id: string | null
+          event_type: string
+          id: string
+          payload: Json
+        }
+        Insert: {
+          created_at?: string
+          dispatch_log_id?: string | null
+          event_type: string
+          id?: string
+          payload?: Json
+        }
+        Update: {
+          created_at?: string
+          dispatch_log_id?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_events_dispatch_log_id_fkey"
+            columns: ["dispatch_log_id"]
+            isOneToOne: false
+            referencedRelation: "dispatch_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       journalists: {
         Row: {
           active: boolean
+          bounce_reason: string | null
+          bounced_at: string | null
           created_at: string
           email: string | null
           id: string
           name: string
           opt_in: boolean
+          opt_in_email: boolean
+          opt_in_whatsapp: boolean
           outlet: string | null
           phone: string
           region: string | null
@@ -246,11 +282,15 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          bounce_reason?: string | null
+          bounced_at?: string | null
           created_at?: string
           email?: string | null
           id?: string
           name: string
           opt_in?: boolean
+          opt_in_email?: boolean
+          opt_in_whatsapp?: boolean
           outlet?: string | null
           phone: string
           region?: string | null
@@ -259,11 +299,15 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          bounce_reason?: string | null
+          bounced_at?: string | null
           created_at?: string
           email?: string | null
           id?: string
           name?: string
           opt_in?: boolean
+          opt_in_email?: boolean
+          opt_in_whatsapp?: boolean
           outlet?: string | null
           phone?: string
           region?: string | null
