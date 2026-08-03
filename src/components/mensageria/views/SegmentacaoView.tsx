@@ -49,14 +49,29 @@ export function SegmentacaoView() {
   const [field, setField] = useState<SegmentRule["field"]>("tags");
   const [value, setValue] = useState("");
 
-  async function carregar() {
-    const [segRes, baseRes] = await Promise.all([
-      supabase.from("segments").select("*").order("created_at", { ascending: false }),
-      supabase
+  async function carregarBase(): Promise<Journalist[]> {
+    // PostgREST devolve no máximo 1.000 linhas por requisição — pagina até o fim.
+    const pageSize = 1000;
+    const all: Journalist[] = [];
+    for (let page = 0; ; page += 1) {
+      const { data, error } = await supabase
         .from("journalists")
         .select("id, outlet, region, tags")
         .eq("active", true)
-        .eq("opt_in", true),
+        .eq("opt_in", true)
+        .order("id")
+        .range(page * pageSize, page * pageSize + pageSize - 1);
+      if (error || !data || data.length === 0) break;
+      all.push(...data);
+      if (data.length < pageSize) break;
+    }
+    return all;
+  }
+
+  async function carregar() {
+    const [segRes, baseAll] = await Promise.all([
+      supabase.from("segments").select("*").order("created_at", { ascending: false }),
+      carregarBase(),
     ]);
     setSegments(
       (segRes.data ?? []).map((s) => ({
@@ -66,7 +81,7 @@ export function SegmentacaoView() {
         rules: (s.rules ?? []) as unknown as SegmentRule[],
       })),
     );
-    setBase(baseRes.data ?? []);
+    setBase(baseAll);
   }
 
   useEffect(() => {
