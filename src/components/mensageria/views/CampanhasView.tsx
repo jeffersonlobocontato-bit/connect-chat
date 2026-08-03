@@ -244,9 +244,15 @@ export function CampanhasView() {
         title="Campanhas"
         subtitle="Crie o disparo, escolha o público e envie o comunicado."
         action={
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog
+            open={open}
+            onOpenChange={(v) => {
+              setOpen(v);
+              if (!v) resetForm();
+            }}
+          >
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={resetForm}>
                 <Plus className="mr-1.5 h-4 w-4" />
                 Nova campanha
               </Button>
