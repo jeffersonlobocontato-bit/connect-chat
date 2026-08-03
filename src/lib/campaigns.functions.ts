@@ -76,14 +76,16 @@ export const dispatchCampaign = createServerFn({ method: "POST" })
     }
 
     // Canal de e-mail só faz sentido para quem tem e-mail cadastrado.
+    const totalNoAlvo = recipients.length;
     if (channel === "email") {
-      recipients = recipients.filter((r) => Boolean(r.email));
+      recipients = recipients.filter((r) => Boolean(r.email?.trim()));
     }
 
     if (recipients.length === 0) {
+      await supabase.from("campaigns").update({ status: "DRAFT" }).eq("id", campaign.id);
       throw new Error(
         channel === "email"
-          ? "Nenhum destinatário com e-mail cadastrado e opt-in para este alvo"
+          ? `Este público tem ${totalNoAlvo} contato(s) com opt-in, mas nenhum com e-mail cadastrado. Cadastre e-mails em Jornalistas ou envie por WhatsApp.`
           : "Nenhum destinatário com opt-in para este alvo",
       );
     }
