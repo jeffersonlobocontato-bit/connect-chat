@@ -6,7 +6,8 @@ import { Activity, TriangleAlert } from "lucide-react";
 import { KpiCard, PageHeader, StatusBadge } from "../ui-bits";
 
 type Stats = {
-  total: number;
+  press: number;
+  leads: number;
   optIn: number;
   campaignsMonth: number;
   readRate: number;
