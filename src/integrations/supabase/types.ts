@@ -322,7 +322,11 @@ export type Database = {
           name: string
           opt_in: boolean
           opt_in_email: boolean
+          opt_in_email_at: string | null
+          opt_in_email_source: string | null
           opt_in_whatsapp: boolean
+          opt_in_whatsapp_at: string | null
+          opt_in_whatsapp_source: string | null
           outlet: string | null
           owner_note: string | null
           phone: string
@@ -344,7 +348,11 @@ export type Database = {
           name: string
           opt_in?: boolean
           opt_in_email?: boolean
+          opt_in_email_at?: string | null
+          opt_in_email_source?: string | null
           opt_in_whatsapp?: boolean
+          opt_in_whatsapp_at?: string | null
+          opt_in_whatsapp_source?: string | null
           outlet?: string | null
           owner_note?: string | null
           phone: string
@@ -366,7 +374,11 @@ export type Database = {
           name?: string
           opt_in?: boolean
           opt_in_email?: boolean
+          opt_in_email_at?: string | null
+          opt_in_email_source?: string | null
           opt_in_whatsapp?: boolean
+          opt_in_whatsapp_at?: string | null
+          opt_in_whatsapp_source?: string | null
           outlet?: string | null
           owner_note?: string | null
           phone?: string

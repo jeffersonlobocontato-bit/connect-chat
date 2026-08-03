@@ -19,6 +19,20 @@ const STATUS_MAP: Record<string, string> = {
   failed: "FAILED",
 };
 
+// Palavras-chave que, na mensagem recebida, são tratadas como pedido de
+// descadastro do WhatsApp — a Meta exige um mecanismo simples de opt-out,
+// e "responda PARAR" é o padrão mais reconhecido no Brasil.
+const OPT_OUT_KEYWORDS = ["sair", "parar", "cancelar", "descadastrar", "stop", "unsubscribe"];
+
+function isOptOutMessage(text: string): boolean {
+  const normalized = text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+  return OPT_OUT_KEYWORDS.some((kw) => normalized === kw || normalized === `"${kw}"`);
+}
+
 export const Route = createFileRoute("/api/public/whatsapp-webhook")({
   server: {
     handlers: {
@@ -97,6 +111,31 @@ export const Route = createFileRoute("/api/public/whatsapp-webhook")({
                 wa_message_id: msg.id ?? null,
                 status: "received",
               });
+
+              // Opt-out por palavra-chave — exigência da própria Meta de ter
+              // um mecanismo simples de descadastro.
+              if (msg.text?.body && isOptOutMessage(msg.text.body)) {
+                const confirmacao =
+                  "Você não vai mais receber mensagens da AIV por aqui. Se mudar de ideia, é só pedir pra ser recadastrado.";
+                await supabaseAdmin
+                  .from("journalists")
+                  .update({
+                    opt_in_whatsapp: false,
+                    opt_in_whatsapp_source: `Opt-out solicitado via WhatsApp (mensagem: "${msg.text.body.trim()}")`,
+                  })
+                  .eq("id", journalist.id);
+
+                const { sendFreeformText } = await import("@/lib/whatsapp.server");
+                const enviada = await sendFreeformText({ to: msg.from, body: confirmacao });
+                await supabaseAdmin.from("conversation_messages").insert({
+                  journalist_id: journalist.id,
+                  channel: "whatsapp",
+                  direction: "outbound",
+                  body: confirmacao,
+                  wa_message_id: enviada.messageId ?? null,
+                  status: enviada.ok ? "sent" : "failed",
+                });
+              }
             }
 
             const statuses = change?.value?.statuses ?? [];

@@ -6,6 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogFooter,
@@ -33,10 +40,23 @@ export type Contact = {
   owner_note: string | null;
   tags: string[];
   opt_in_whatsapp: boolean;
+  opt_in_whatsapp_source: string | null;
   opt_in_email: boolean;
+  opt_in_email_source: string | null;
   active: boolean;
   audience: string;
 };
+
+// Prova de consentimento (LGPD): o ônus da prova é de quem trata os dados,
+// então todo opt-in ligado precisa dizer de onde veio.
+const FONTES_CONSENTIMENTO = [
+  "Formulário próprio",
+  "Solicitação por e-mail",
+  "Solicitação por WhatsApp",
+  "Indicação/relacionamento prévio",
+  "Evento presencial",
+  "Cadastro em credenciamento de imprensa",
+];
 
 const EMPTY = {
   name: "",
@@ -51,7 +71,9 @@ const EMPTY = {
   owner_note: "",
   tags: "",
   opt_in_whatsapp: true,
+  opt_in_whatsapp_source: FONTES_CONSENTIMENTO[0]!,
   opt_in_email: true,
+  opt_in_email_source: FONTES_CONSENTIMENTO[0]!,
   active: true,
 };
 
@@ -95,6 +117,10 @@ export function ContatosView({ audience }: { audience: Audience }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY);
+  const [original, setOriginal] = useState<{ whatsapp: boolean; email: boolean }>({
+    whatsapp: false,
+    email: false,
+  });
   const [saving, setSaving] = useState(false);
 
   async function carregar() {
@@ -116,6 +142,7 @@ export function ContatosView({ audience }: { audience: Audience }) {
   function abrirNovo() {
     setEditing(null);
     setForm(EMPTY);
+    setOriginal({ whatsapp: false, email: false });
     setOpen(true);
   }
 
@@ -134,9 +161,12 @@ export function ContatosView({ audience }: { audience: Audience }) {
       owner_note: c.owner_note ?? "",
       tags: (c.tags ?? []).join(", "),
       opt_in_whatsapp: c.opt_in_whatsapp,
+      opt_in_whatsapp_source: c.opt_in_whatsapp_source ?? FONTES_CONSENTIMENTO[0]!,
       opt_in_email: c.opt_in_email,
+      opt_in_email_source: c.opt_in_email_source ?? FONTES_CONSENTIMENTO[0]!,
       active: c.active,
     });
+    setOriginal({ whatsapp: c.opt_in_whatsapp, email: c.opt_in_email });
     setOpen(true);
   }
 
@@ -154,8 +184,20 @@ export function ContatosView({ audience }: { audience: Audience }) {
       toast.error("E-mail inválido");
       return;
     }
+    if (form.opt_in_whatsapp && !form.opt_in_whatsapp_source) {
+      toast.error("Informe a origem do consentimento de WhatsApp");
+      return;
+    }
+    if (form.opt_in_email && !form.opt_in_email_source) {
+      toast.error("Informe a origem do consentimento de e-mail");
+      return;
+    }
 
     setSaving(true);
+    const now = new Date().toISOString();
+    const ligouWhatsapp = form.opt_in_whatsapp && !original.whatsapp;
+    const ligouEmail = form.opt_in_email && !original.email;
+
     const payload = {
       name: form.name.trim(),
       phone,
@@ -175,6 +217,20 @@ export function ContatosView({ audience }: { audience: Audience }) {
       opt_in_whatsapp: form.opt_in_whatsapp,
       opt_in_email: form.opt_in_email,
       active: form.active,
+      // Só grava data/origem no momento em que o opt-in liga — não sobrescreve
+      // uma prova de consentimento existente só porque a tela foi salva de novo.
+      ...(ligouWhatsapp || !editing
+        ? {
+            opt_in_whatsapp_at: form.opt_in_whatsapp ? now : null,
+            opt_in_whatsapp_source: form.opt_in_whatsapp ? form.opt_in_whatsapp_source : null,
+          }
+        : {}),
+      ...(ligouEmail || !editing
+        ? {
+            opt_in_email_at: form.opt_in_email ? now : null,
+            opt_in_email_source: form.opt_in_email ? form.opt_in_email_source : null,
+          }
+        : {}),
     };
 
     const { error } = editing
@@ -353,19 +409,57 @@ export function ContatosView({ audience }: { audience: Audience }) {
                     />
                   </div>
                 ) : null}
-                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                  <span className="text-sm">Opt-in WhatsApp</span>
-                  <Switch
-                    checked={form.opt_in_whatsapp}
-                    onCheckedChange={(v) => setForm({ ...form, opt_in_whatsapp: v })}
-                  />
+                <div className="rounded-lg border border-border px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Opt-in WhatsApp</span>
+                    <Switch
+                      checked={form.opt_in_whatsapp}
+                      onCheckedChange={(v) => setForm({ ...form, opt_in_whatsapp: v })}
+                    />
+                  </div>
+                  {form.opt_in_whatsapp && (
+                    <Select
+                      value={form.opt_in_whatsapp_source}
+                      onValueChange={(v) => setForm({ ...form, opt_in_whatsapp_source: v })}
+                    >
+                      <SelectTrigger className="mt-2 h-8 text-xs">
+                        <SelectValue placeholder="Origem do consentimento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FONTES_CONSENTIMENTO.map((f) => (
+                          <SelectItem key={f} value={f}>
+                            {f}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
-                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                  <span className="text-sm">Opt-in E-mail</span>
-                  <Switch
-                    checked={form.opt_in_email}
-                    onCheckedChange={(v) => setForm({ ...form, opt_in_email: v })}
-                  />
+                <div className="rounded-lg border border-border px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Opt-in E-mail</span>
+                    <Switch
+                      checked={form.opt_in_email}
+                      onCheckedChange={(v) => setForm({ ...form, opt_in_email: v })}
+                    />
+                  </div>
+                  {form.opt_in_email && (
+                    <Select
+                      value={form.opt_in_email_source}
+                      onValueChange={(v) => setForm({ ...form, opt_in_email_source: v })}
+                    >
+                      <SelectTrigger className="mt-2 h-8 text-xs">
+                        <SelectValue placeholder="Origem do consentimento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FONTES_CONSENTIMENTO.map((f) => (
+                          <SelectItem key={f} value={f}>
+                            {f}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
                   <span className="text-sm">Ativo</span>

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as ApiPublicDataRetentionRouteImport } from './routes/api/public/data-retention'
 import { Route as ApiPublicResendWebhookRouteImport } from './routes/api/public/resend-webhook'
 import { Route as ApiPublicRunScheduledRouteImport } from './routes/api/public/run-scheduled'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp-webhook'
@@ -37,6 +38,11 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiPublicDataRetentionRoute = ApiPublicDataRetentionRouteImport.update({
+  id: '/api/public/data-retention',
+  path: '/api/public/data-retention',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicResendWebhookRoute = ApiPublicResendWebhookRouteImport.update({
   id: '/api/public/resend-webhook',
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/api/public/data-retention': typeof ApiPublicDataRetentionRoute
   '/api/public/resend-webhook': typeof ApiPublicResendWebhookRoute
   '/api/public/run-scheduled': typeof ApiPublicRunScheduledRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/api/public/data-retention': typeof ApiPublicDataRetentionRoute
   '/api/public/resend-webhook': typeof ApiPublicResendWebhookRoute
   '/api/public/run-scheduled': typeof ApiPublicRunScheduledRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/api/public/data-retention': typeof ApiPublicDataRetentionRoute
   '/api/public/resend-webhook': typeof ApiPublicResendWebhookRoute
   '/api/public/run-scheduled': typeof ApiPublicRunScheduledRoute
   '/api/public/whatsapp-webhook': typeof ApiPublicWhatsappWebhookRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/painel'
+    | '/api/public/data-retention'
     | '/api/public/resend-webhook'
     | '/api/public/run-scheduled'
     | '/api/public/whatsapp-webhook'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/painel'
+    | '/api/public/data-retention'
     | '/api/public/resend-webhook'
     | '/api/public/run-scheduled'
     | '/api/public/whatsapp-webhook'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/painel'
+    | '/api/public/data-retention'
     | '/api/public/resend-webhook'
     | '/api/public/run-scheduled'
     | '/api/public/whatsapp-webhook'
@@ -136,6 +148,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicDataRetentionRoute: typeof ApiPublicDataRetentionRoute
   ApiPublicResendWebhookRoute: typeof ApiPublicResendWebhookRoute
   ApiPublicRunScheduledRoute: typeof ApiPublicRunScheduledRoute
   ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/painel'
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/data-retention': {
+      id: '/api/public/data-retention'
+      path: '/api/public/data-retention'
+      fullPath: '/api/public/data-retention'
+      preLoaderRoute: typeof ApiPublicDataRetentionRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/resend-webhook': {
       id: '/api/public/resend-webhook'
@@ -226,6 +246,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicDataRetentionRoute: ApiPublicDataRetentionRoute,
   ApiPublicResendWebhookRoute: ApiPublicResendWebhookRoute,
   ApiPublicRunScheduledRoute: ApiPublicRunScheduledRoute,
   ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
