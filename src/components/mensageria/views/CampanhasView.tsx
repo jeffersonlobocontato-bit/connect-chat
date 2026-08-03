@@ -179,6 +179,38 @@ export function CampanhasView() {
     }));
   }
 
+  async function enviarImagemTopo(file: File) {
+    setEnviandoImagem(true);
+    try {
+      const path = `${crypto.randomUUID()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("campaign-media")
+        .upload(path, file, { contentType: file.type });
+      if (uploadError) throw new Error("Falha ao enviar a imagem");
+      const { data: signed } = await supabase.storage
+        .from("campaign-media")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+      if (!signed?.signedUrl) throw new Error("Falha ao gerar o link da imagem");
+      const { data: userData } = await supabase.auth.getUser();
+      await supabase.from("media_library").insert({
+        file_name: file.name,
+        storage_path: path,
+        public_url: signed.signedUrl,
+        mime_type: file.type,
+        media_type: "IMAGE",
+        file_size_bytes: file.size,
+        created_by: userData.user?.id ?? null,
+      });
+      setImagemTopo(signed.signedUrl);
+      await carregar();
+      toast.success("Imagem enviada — ela será usada no topo do e-mail");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Falha no upload");
+    } finally {
+      setEnviandoImagem(false);
+    }
+  }
+
   async function montarComIA() {
     if (!form.release_id && !form.link_url.trim()) {
       toast.error("Escolha uma matéria publicada ou informe o link do material");
@@ -192,6 +224,7 @@ export function CampanhasView() {
           linkUrl: form.link_url.trim() || null,
           campaignName: form.name.trim() || null,
           instructions: instrucoes.trim() || null,
+          imageUrl: imagemTopo || null,
         },
       });
       setForm((prev) => ({
@@ -206,6 +239,7 @@ export function CampanhasView() {
       setGerando(false);
     }
   }
+
 
   function editar(c: Campaign) {
     setEditingId(c.id);
