@@ -37,6 +37,7 @@ type Campaign = {
   list_id: string | null;
   media_id: string | null;
   channel: string;
+  audience: string;
 };
 
 type MediaAsset = {
@@ -53,10 +54,18 @@ type Template = {
   channel: string;
 };
 
+const AUDIENCE_LABEL: Record<string, string> = {
+  press: "Imprensa",
+  lead: "Leads",
+  all: "Imprensa + Leads",
+};
+
 export function CampanhasView() {
   const [rows, setRows] = useState<Campaign[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [segments, setSegments] = useState<Array<{ id: string; name: string }>>([]);
+  const [segments, setSegments] = useState<
+    Array<{ id: string; name: string; audience: string }>
+  >([]);
   const [lists, setLists] = useState<Array<{ id: string; name: string }>>([]);
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
   const [open, setOpen] = useState(false);
@@ -64,6 +73,7 @@ export function CampanhasView() {
   const [form, setForm] = useState({
     name: "",
     channel: "whatsapp",
+    audience: "press",
     template_id: "",
     target: "",
     link_url: "",
@@ -73,6 +83,9 @@ export function CampanhasView() {
   });
   const disparar = useServerFn(dispatchCampaign);
   const templatesDoCanal = templates.filter((t) => t.channel === form.channel);
+  const segmentosDoPublico = segments.filter(
+    (s) => form.audience === "all" || s.audience === form.audience,
+  );
 
   async function carregar() {
     const [c, t, s, l, m] = await Promise.all([
