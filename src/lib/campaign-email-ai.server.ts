@@ -100,9 +100,14 @@ export async function generateEmailFromRelease(params: {
         .single();
       if (media?.public_url) {
         // URL estável no nosso domínio (o link assinado do storage expira e é
-        // bloqueado por alguns clientes de e-mail).
-        coverUrl = `${params.origin}/api/public/release-image/${release.id}?inline=1`;
-        downloadUrl = `${params.origin}/api/public/release-image/${release.id}`;
+        // bloqueado por alguns clientes de e-mail). Se a matéria ainda não está
+        // publicada, o proxy devolve 404 — aí usamos a URL direta da mídia.
+        coverUrl = release.published
+          ? `${params.origin}/api/public/release-image/${release.id}?inline=1`
+          : media.public_url;
+        downloadUrl = release.published
+          ? `${params.origin}/api/public/release-image/${release.id}`
+          : media.public_url;
       }
     }
 
