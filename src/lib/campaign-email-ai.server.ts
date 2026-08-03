@@ -78,7 +78,7 @@ export async function generateEmailFromRelease(params: {
   if (params.releaseId) {
     const { data: release } = await supabase
       .from("releases")
-      .select("id, title, slug, summary, body_html, cover_media_id, clients(name, slug)")
+      .select("id, title, slug, summary, body_html, cover_media_id, published, clients(name, slug)")
       .eq("id", params.releaseId)
       .single();
     if (!release) throw new Error("Matéria não encontrada");
