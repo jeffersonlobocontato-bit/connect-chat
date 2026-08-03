@@ -210,7 +210,7 @@ export function ContatosView({ audience }: { audience: Audience }) {
 
     const payload = {
       name: form.name.trim(),
-      phone,
+      phone: phone || null,
       email: form.email.trim() || null,
       messenger_psid: form.messenger_psid.trim() || null,
       instagram_igsid: form.instagram_igsid.trim() || null,
