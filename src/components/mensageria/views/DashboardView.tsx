@@ -55,18 +55,18 @@ export function DashboardView() {
             .select("id", { count: "exact", head: true })
             .eq("opt_in_whatsapp", true)
             .eq("active", true),
-        supabase
-          .from("campaigns")
-          .select("id", { count: "exact", head: true })
-          .gte("created_at", monthStart.toISOString()),
-        supabase.from("dispatch_logs").select("status"),
-        supabase.from("waba_config").select("*").eq("active", true).limit(1).maybeSingle(),
-        supabase
-          .from("campaigns")
-          .select("id, name, status, created_at")
-          .order("created_at", { ascending: false })
-          .limit(5),
-      ]);
+          supabase
+            .from("campaigns")
+            .select("id", { count: "exact", head: true })
+            .gte("created_at", monthStart.toISOString()),
+          supabase.from("dispatch_logs").select("status"),
+          supabase.from("waba_config").select("*").eq("active", true).limit(1).maybeSingle(),
+          supabase
+            .from("campaigns")
+            .select("id, name, status, created_at")
+            .order("created_at", { ascending: false })
+            .limit(5),
+        ]);
 
       if (cancelled) return;
 
@@ -75,7 +75,8 @@ export function DashboardView() {
       const read = logs.filter((l) => l.status === "READ").length;
 
       setStats({
-        total: totalRes.count ?? 0,
+        press: pressRes.count ?? 0,
+        leads: leadsRes.count ?? 0,
         optIn: optInRes.count ?? 0,
         campaignsMonth: campaignsRes.count ?? 0,
         readRate: delivered > 0 ? Math.round((read / delivered) * 100) : 0,
