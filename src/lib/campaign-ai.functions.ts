@@ -15,11 +15,13 @@ export const generateCampaignEmail = createServerFn({ method: "POST" })
       linkUrl?: string | null;
       campaignName?: string | null;
       instructions?: string | null;
+      imageUrl?: string | null;
     }) => ({
       releaseId: input?.releaseId ?? null,
       linkUrl: input?.linkUrl ?? null,
       campaignName: input?.campaignName ?? null,
       instructions: input?.instructions ?? null,
+      imageUrl: input?.imageUrl ?? null,
     }),
   )
   .handler(async ({ data, context }) => {
