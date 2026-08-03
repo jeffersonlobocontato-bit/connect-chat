@@ -33,6 +33,25 @@ export type OutboundEmail = {
 
 const DEFAULT_FROM_ADDRESS = "releases@news.aivozes.com.br";
 
+export const BRAND_NAME = "Agência de Inteligência Vozes";
+export const BRAND_LOGO_URL = "https://mensageria.aivozes.com.br/avatar-vozes.png";
+
+/**
+ * Cabeçalho de marca (avatar V + nome por extenso) anexado a todo e-mail —
+ * é o que os clientes de e-mail mostram quando não há BIMI configurado.
+ */
+export function prependBrandHeader(html: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto 8px;font-family:Arial,Helvetica,sans-serif">
+  <tr>
+    <td style="padding:8px 0" width="44">
+      <img src="${BRAND_LOGO_URL}" width="36" height="36" alt="${BRAND_NAME}" style="display:block;border-radius:8px" />
+    </td>
+    <td style="padding:8px 0;font-size:13px;font-weight:700;color:#0f2c5c">${BRAND_NAME}</td>
+  </tr>
+</table>
+${html}`;
+}
+
 /**
  * Rodapé de descadastro anexado a TODO e-mail, independente do template —
  * compliance não pode depender de o autor do template lembrar de incluir
@@ -42,7 +61,7 @@ export function appendUnsubscribeFooter(html: string, unsubscribeUrl: string): s
   return `${html}
 <hr style="margin-top:24px;border:none;border-top:1px solid #e2e8f0" />
 <p style="font-size:12px;color:#94a3b8;margin-top:12px">
-  Você recebeu este e-mail porque faz parte da base de imprensa da AIV.
+  Você recebeu este e-mail porque faz parte da base de imprensa da Agência de Inteligência Vozes.
   <a href="${unsubscribeUrl}" style="color:#94a3b8">Não quero mais receber</a>.
 </p>`;
 }
@@ -56,7 +75,7 @@ export async function sendEmail(message: OutboundEmail): Promise<EmailSendResult
 
   const apiKey = process.env["RESEND_API_KEY"]!;
   const fromAddress = process.env["RESEND_FROM_ADDRESS"] || DEFAULT_FROM_ADDRESS;
-  const fromName = message.fromName || "AIV — Assessoria de Imprensa";
+  const fromName = message.fromName || "Agência de Inteligência Vozes";
 
   const headers: Record<string, string> = {};
   if (message.unsubscribeUrl) {

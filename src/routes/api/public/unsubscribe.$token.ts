@@ -5,7 +5,7 @@ const CONFIRMATION_PAGE = (message: string) => `<!doctype html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Descadastro — AIV</title>
+<title>Descadastro — Agência de Inteligência Vozes</title>
 <style>
   body { font-family: system-ui, sans-serif; background: #0A2540; color: #fff; display: flex;
          align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/api/public/unsubscribe/$token")({
 
         return new Response(
           CONFIRMATION_PAGE(
-            "Você não receberá mais e-mails da AIV. Se mudar de ideia, é só pedir pra ser recadastrado.",
+            "Você não receberá mais e-mails da Agência de Inteligência Vozes. Se mudar de ideia, é só pedir pra ser recadastrado.",
           ),
           { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } },
         );

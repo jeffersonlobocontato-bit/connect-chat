@@ -253,7 +253,7 @@ export function TemplatesView() {
                       <Label htmlFor="tpl-assunto">Assunto</Label>
                       <Input
                         id="tpl-assunto"
-                        placeholder="AIV divulga {{nome}} — confira o release"
+                        placeholder="Agência de Inteligência Vozes divulga {{nome}} — confira o release"
                         value={form.subject}
                         onChange={(e) => setForm({ ...form, subject: e.target.value })}
                       />
@@ -263,7 +263,7 @@ export function TemplatesView() {
                       <Textarea
                         id="tpl-html"
                         rows={8}
-                        placeholder="<p>Olá {{nome}},</p><p>A AIV divulga hoje...</p><p><a href='{{link}}'>Acesse o material</a></p>"
+                        placeholder="<p>Olá {{nome}},</p><p>A Agência de Inteligência Vozes divulga hoje...</p><p><a href='{{link}}'>Acesse o material</a></p>"
                         value={form.html_body}
                         onChange={(e) => setForm({ ...form, html_body: e.target.value })}
                       />

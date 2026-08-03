@@ -163,8 +163,13 @@ export async function runCampaignDispatch(params: {
   let live = false;
 
   if (channel === "email") {
-    const { sendEmail, renderEmailTemplate, appendUnsubscribeFooter, isEmailLiveMode } =
-      await import("@/lib/email.server");
+    const {
+      sendEmail,
+      renderEmailTemplate,
+      appendUnsubscribeFooter,
+      prependBrandHeader,
+      isEmailLiveMode,
+    } = await import("@/lib/email.server");
     const { generateUnsubscribeToken } = await import("@/lib/unsubscribe.server");
     live = isEmailLiveMode();
 
@@ -192,11 +197,11 @@ export async function runCampaignDispatch(params: {
   ${linkParaEnvio ? `<p><a href="{{link}}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#0f2c5c;color:#ffffff;text-decoration:none;font-weight:600">Acessar o material</a></p>` : ""}
 </div>`);
       const subject = renderEmailTemplate(
-        campanhaSubject?.trim() || template?.subject || campaign.name || "Comunicado da AIV",
+        campanhaSubject?.trim() || template?.subject || campaign.name || "Comunicado da Agência de Inteligência Vozes",
         vars,
       );
       const htmlBase = renderEmailTemplate(corpoBruto, vars);
-      const html = appendUnsubscribeFooter(htmlBase, unsubscribeUrl);
+      const html = appendUnsubscribeFooter(prependBrandHeader(htmlBase), unsubscribeUrl);
 
       const result = await sendEmail({ to: recipient.email!, subject, html, unsubscribeUrl });
       const now = new Date().toISOString();
