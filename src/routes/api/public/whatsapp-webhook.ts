@@ -112,6 +112,14 @@ export const Route = createFileRoute("/api/public/whatsapp-webhook")({
                 status: "received",
               });
 
+              // Etiquetagem automática por palavra-chave.
+              if (msg.text?.body) {
+                const { applyAutoTags } = await import("@/lib/auto-tag.server");
+                await applyAutoTags({ journalistId: journalist.id, text: msg.text.body });
+              }
+
+
+
               // Opt-out por palavra-chave — exigência da própria Meta de ter
               // um mecanismo simples de descadastro.
               if (msg.text?.body && isOptOutMessage(msg.text.body)) {

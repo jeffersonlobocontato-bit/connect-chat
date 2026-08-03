@@ -1,41 +1,77 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+type AuthContext = {
+  supabase: {
+    rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: boolean | null }>;
+  };
+  userId: string;
+};
+
+/** Admin gerencia tudo; Agente ("user") também opera a Caixa de Entrada. */
+async function assertInboxAccess(context: AuthContext) {
+  const [{ data: isAdmin }, { data: isAgent }] = await Promise.all([
+    context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" }),
+    context.supabase.rpc("has_role", { _user_id: context.userId, _role: "user" }),
+  ]);
+  if (!isAdmin && !isAgent) throw new Error("Acesso restrito");
+}
+
 /**
- * Envia uma resposta de texto livre para um jornalista (dentro da janela
- * de 24h) e registra na conversa. Diferente de campanhas, isso não passa
- * por template — é conversa direta.
+ * Envia uma resposta de texto livre para um contato (dentro da janela
+ * de 24h) e registra na conversa. Detecta o canal da conversa —
+ * WhatsApp, Messenger ou Instagram — e responde pelo canal certo.
  */
 export const sendReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { journalistId: string; body: string }) => {
+  .inputValidator((input: { journalistId: string; body: string; channel?: string }) => {
     if (!input?.journalistId || !input?.body?.trim()) {
       throw new Error("journalistId e body são obrigatórios");
     }
-    return { journalistId: input.journalistId, body: input.body.trim() };
+    return {
+      journalistId: input.journalistId,
+      body: input.body.trim(),
+      channel: input.channel ?? "whatsapp",
+    };
   })
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (!isAdmin) throw new Error("Acesso restrito a administradores");
+    await assertInboxAccess(context as unknown as AuthContext);
 
     const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
-    const { sendFreeformText } = await import("@/lib/whatsapp.server");
 
     const { data: journalist, error: journalistError } = await supabase
       .from("journalists")
-      .select("phone")
+      .select("phone, messenger_psid, instagram_igsid")
       .eq("id", data.journalistId)
       .single();
-    if (journalistError || !journalist) throw new Error("Jornalista não encontrado");
+    if (journalistError || !journalist) throw new Error("Contato não encontrado");
 
-    const result = await sendFreeformText({ to: journalist.phone, body: data.body });
+    const contato = journalist as unknown as {
+      phone: string | null;
+      messenger_psid: string | null;
+      instagram_igsid: string | null;
+    };
+
+    let result: { ok: boolean; messageId?: string | undefined; error?: string | undefined };
+
+    if (data.channel === "messenger") {
+      if (!contato.messenger_psid) throw new Error("Contato sem identificador do Messenger");
+      const { sendMessengerText } = await import("@/lib/facebook.server");
+      result = await sendMessengerText({ psid: contato.messenger_psid, body: data.body });
+    } else if (data.channel === "instagram") {
+      if (!contato.instagram_igsid) throw new Error("Contato sem identificador do Instagram");
+      const { sendInstagramText } = await import("@/lib/facebook.server");
+      result = await sendInstagramText({ igsid: contato.instagram_igsid, body: data.body });
+    } else {
+      if (!contato.phone) throw new Error("Contato sem telefone cadastrado");
+      const { sendFreeformText } = await import("@/lib/whatsapp.server");
+      result = await sendFreeformText({ to: contato.phone, body: data.body });
+    }
 
     if (!result.ok) {
       await supabase.from("conversation_messages").insert({
         journalist_id: data.journalistId,
+        channel: data.channel,
         direction: "outbound",
         body: data.body,
         status: "failed",
@@ -49,6 +85,7 @@ export const sendReply = createServerFn({ method: "POST" })
 
     await supabase.from("conversation_messages").insert({
       journalist_id: data.journalistId,
+      channel: data.channel,
       direction: "outbound",
       body: data.body,
       wa_message_id: result.messageId ?? null,
@@ -59,7 +96,7 @@ export const sendReply = createServerFn({ method: "POST" })
   });
 
 /**
- * Marca as mensagens recebidas de um jornalista como lidas pelo admin —
+ * Marca as mensagens recebidas de um contato como lidas —
  * some com o indicador de "não lida" na lista de conversas.
  */
 export const markConversationRead = createServerFn({ method: "POST" })
@@ -69,11 +106,7 @@ export const markConversationRead = createServerFn({ method: "POST" })
     return { journalistId: input.journalistId };
   })
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (!isAdmin) throw new Error("Acesso restrito a administradores");
+    await assertInboxAccess(context as unknown as AuthContext);
     const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
     await supabase
       .from("conversation_messages")
