@@ -44,6 +44,8 @@ export type Database = {
           channel: string
           created_at: string
           created_by: string | null
+          email_html: string | null
+          email_subject: string | null
           id: string
           link_url: string | null
           list_id: string | null
@@ -52,6 +54,7 @@ export type Database = {
           media_url: string | null
           name: string
           reengagement_of: string | null
+          release_id: string | null
           scheduled_at: string | null
           segment_id: string | null
           sent_at: string | null
@@ -63,6 +66,8 @@ export type Database = {
           channel?: string
           created_at?: string
           created_by?: string | null
+          email_html?: string | null
+          email_subject?: string | null
           id?: string
           link_url?: string | null
           list_id?: string | null
@@ -71,6 +76,7 @@ export type Database = {
           media_url?: string | null
           name: string
           reengagement_of?: string | null
+          release_id?: string | null
           scheduled_at?: string | null
           segment_id?: string | null
           sent_at?: string | null
@@ -82,6 +88,8 @@ export type Database = {
           channel?: string
           created_at?: string
           created_by?: string | null
+          email_html?: string | null
+          email_subject?: string | null
           id?: string
           link_url?: string | null
           list_id?: string | null
@@ -90,6 +98,7 @@ export type Database = {
           media_url?: string | null
           name?: string
           reengagement_of?: string | null
+          release_id?: string | null
           scheduled_at?: string | null
           segment_id?: string | null
           sent_at?: string | null
@@ -116,6 +125,13 @@ export type Database = {
             columns: ["reengagement_of"]
             isOneToOne: false
             referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
             referencedColumns: ["id"]
           },
           {
