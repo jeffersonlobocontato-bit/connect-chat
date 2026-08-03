@@ -11,7 +11,7 @@
 
 - Preencher `email` nos 608 contatos que casarem por telefone. Nenhum telefone novo é criado, nenhum e-mail existente é sobrescrito.
 - Se o mesmo e-mail aparecer em contatos diferentes (redação com e-mail único), mantém — a chave única continua sendo o telefone.
-- **Opt-in de e-mail**: ligado para esses contatos, com data de consentimento e origem registrada como "Mailing de imprensa" (a prova de consentimento que já existe na tela de contatos). Se preferir deixar o opt-in desligado para revisar antes de disparar, é só dizer.
+- **Opt-in**: todos considerados autorizados — opt-in de e-mail ligado para quem receber e-mail e opt-in de WhatsApp ligado para toda a base de imprensa, com data de consentimento e origem "Mailing de imprensa".
 
 ## Parte 2 — Segmentos por região de DDD
 
