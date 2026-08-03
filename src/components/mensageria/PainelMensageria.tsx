@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Users,
+  UserPlus,
   Filter,
   FileText,
   Send,
