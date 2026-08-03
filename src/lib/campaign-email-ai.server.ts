@@ -58,11 +58,33 @@ function fallbackHtml(input: {
 </div>`;
 }
 
+function firstImageFromHtml(html: string): string | null {
+  const match = /<img[^>]+src=["']([^"']+)["']/i.exec(html ?? "");
+  const src = match?.[1]?.trim();
+  return src && /^https?:\/\//i.test(src) ? src : null;
+}
+
+async function imageFromPage(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; AIVBot)" } });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const og =
+      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i.exec(html)?.[1] ??
+      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i.exec(html)?.[1];
+    if (og && /^https?:\/\//i.test(og)) return og;
+    return firstImageFromHtml(html);
+  } catch {
+    return null;
+  }
+}
+
 export async function generateEmailFromRelease(params: {
   releaseId?: string | null;
   linkUrl?: string | null;
   campaignName?: string | null;
   instructions?: string | null;
+  imageUrl?: string | null;
   origin: string;
 }): Promise<GeneratedEmail> {
   const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
@@ -70,9 +92,9 @@ export async function generateEmailFromRelease(params: {
   let title = params.campaignName?.trim() || "Comunicado da Agência de Inteligência Vozes";
   let summary = "";
   let bodyText = "";
-  let coverUrl: string | null = null;
+  let coverUrl: string | null = params.imageUrl?.trim() || null;
   let readUrl: string | null = params.linkUrl?.trim() || null;
-  let downloadUrl: string | null = null;
+  let downloadUrl: string | null = params.imageUrl?.trim() || null;
   let clientName = "";
 
   if (params.releaseId) {
@@ -92,7 +114,7 @@ export async function generateEmailFromRelease(params: {
     readUrl =
       readUrl ?? `${params.origin}/release/${client?.slug ?? ""}/${release.slug}`;
 
-    if (release.cover_media_id) {
+    if (!coverUrl && release.cover_media_id) {
       const { data: media } = await supabase
         .from("media_library")
         .select("public_url")
@@ -111,7 +133,19 @@ export async function generateEmailFromRelease(params: {
       }
     }
 
+    // Sem capa cadastrada: usa a primeira imagem do corpo da matéria.
+    if (!coverUrl) {
+      coverUrl = firstImageFromHtml(release.body_html ?? "");
+      downloadUrl = downloadUrl ?? coverUrl;
+    }
   }
+
+  // Só link avulso: tenta a imagem de destaque (og:image) da página.
+  if (!coverUrl && readUrl) {
+    coverUrl = await imageFromPage(readUrl);
+    downloadUrl = downloadUrl ?? coverUrl;
+  }
+
 
   const apiKey = process.env["LOVABLE_API_KEY"];
   const fallback = () => ({
