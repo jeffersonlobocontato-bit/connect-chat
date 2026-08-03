@@ -282,9 +282,14 @@ export function SegmentacaoView() {
                     <p className="mt-1 text-xs text-muted-foreground">{s.description}</p>
                   ) : null}
                 </div>
-                <Button size="icon" variant="ghost" onClick={() => remover(s.id)}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+                <div className="flex shrink-0 items-center">
+                  <Button size="icon" variant="ghost" onClick={() => abrirEdicao(s)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" onClick={() => remover(s.id)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">{describeRules(s.rules)}</p>
               <div className="mt-3 text-sm">
