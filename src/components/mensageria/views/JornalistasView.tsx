@@ -21,6 +21,7 @@ type Journalist = {
   id: string;
   name: string;
   phone: string;
+  email: string | null;
   outlet: string | null;
   role_title: string | null;
   region: string | null;
@@ -32,6 +33,7 @@ type Journalist = {
 const EMPTY = {
   name: "",
   phone: "",
+  email: "",
   outlet: "",
   role_title: "",
   region: "",
@@ -72,6 +74,7 @@ export function JornalistasView() {
     setForm({
       name: j.name,
       phone: j.phone,
+      email: j.email ?? "",
       outlet: j.outlet ?? "",
       role_title: j.role_title ?? "",
       region: j.region ?? "",
@@ -92,11 +95,16 @@ export function JornalistasView() {
       toast.error("Telefone inválido — use DDI + DDD + número");
       return;
     }
+    if (form.email.trim() && !form.email.includes("@")) {
+      toast.error("E-mail inválido");
+      return;
+    }
 
     setSaving(true);
     const payload = {
       name: form.name.trim(),
       phone,
+      email: form.email.trim() || null,
       outlet: form.outlet.trim() || null,
       role_title: form.role_title.trim() || null,
       region: form.region.trim() || null,
@@ -135,7 +143,7 @@ export function JornalistasView() {
   }
 
   const filtradas = rows.filter((j) =>
-    [j.name, j.outlet, j.region, j.tags.join(" ")]
+    [j.name, j.outlet, j.region, j.email, j.tags.join(" ")]
       .join(" ")
       .toLowerCase()
       .includes(busca.toLowerCase()),
@@ -174,6 +182,16 @@ export function JornalistasView() {
                     placeholder="5511999998888"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">E-mail (opcional)</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="jornalista@veiculo.com.br"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
                   />
                 </div>
                 <div>
@@ -271,6 +289,7 @@ export function JornalistasView() {
                     <div className="text-xs text-muted-foreground">
                       {j.role_title ? `${j.role_title} · ` : ""}
                       {j.phone}
+                      {j.email ? ` · ${j.email}` : ""}
                     </div>
                   </td>
                   <td className="px-4 py-3">{j.outlet ?? "—"}</td>

@@ -34,36 +34,62 @@ type Campaign = {
   template_id: string | null;
   segment_id: string | null;
   list_id: string | null;
+  media_id: string | null;
+  channel: string;
+};
+
+type MediaAsset = {
+  id: string;
+  file_name: string;
+  public_url: string;
+  media_type: string;
+};
+
+type Template = {
+  id: string;
+  meta_template_name: string | null;
+  name: string | null;
+  channel: string;
 };
 
 export function CampanhasView() {
   const [rows, setRows] = useState<Campaign[]>([]);
-  const [templates, setTemplates] = useState<Array<{ id: string; meta_template_name: string }>>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [segments, setSegments] = useState<Array<{ id: string; name: string }>>([]);
   const [lists, setLists] = useState<Array<{ id: string; name: string }>>([]);
+  const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
   const [open, setOpen] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
+    channel: "whatsapp",
     template_id: "",
     target: "",
     link_url: "",
-    media_url: "",
-    media_type: "none",
+    media_id: "",
   });
   const disparar = useServerFn(dispatchCampaign);
+  const templatesDoCanal = templates.filter((t) => t.channel === form.channel);
 
   async function carregar() {
-    const [c, t, s, l] = await Promise.all([
+    const [c, t, s, l, m] = await Promise.all([
       supabase.from("campaigns").select("*").order("created_at", { ascending: false }),
-      supabase.from("message_templates").select("id, meta_template_name").order("meta_template_name"),
+      supabase
+        .from("message_templates")
+        .select("id, meta_template_name, name, channel")
+        .order("name"),
       supabase.from("segments").select("id, name").order("name"),
       supabase.from("contact_lists").select("id, name").order("name"),
+      supabase
+        .from("media_library")
+        .select("id, file_name, public_url, media_type")
+        .order("created_at", { ascending: false }),
     ]);
-    setRows(c.data ?? []);
-    setTemplates(t.data ?? []);
+    setRows((c.data ?? []) as Campaign[]);
+    setTemplates((t.data ?? []) as Template[]);
     setSegments(s.data ?? []);
     setLists(l.data ?? []);
+    setMediaAssets((m.data ?? []) as MediaAsset[]);
   }
 
   useEffect(() => {
@@ -88,12 +114,12 @@ export function CampanhasView() {
 
     const { error } = await supabase.from("campaigns").insert({
       name: form.name.trim(),
+      channel: form.channel,
       template_id: form.template_id,
       segment_id: kind === "segment" ? id! : null,
       list_id: kind === "list" ? id! : null,
       link_url: form.link_url.trim() || null,
-      media_url: form.media_url.trim() || null,
-      media_type: form.media_type === "none" ? null : form.media_type,
+      media_id: form.channel === "whatsapp" ? form.media_id || null : null,
       status: "DRAFT",
       created_by: userData.user?.id ?? null,
     });
@@ -103,7 +129,14 @@ export function CampanhasView() {
     }
     toast.success("Campanha criada como rascunho");
     setOpen(false);
-    setForm({ name: "", template_id: "", target: "", link_url: "", media_url: "", media_type: "none" });
+    setForm({
+      name: "",
+      channel: "whatsapp",
+      template_id: "",
+      target: "",
+      link_url: "",
+      media_id: "",
+    });
     void carregar();
   }
 
@@ -165,6 +198,23 @@ export function CampanhasView() {
                   />
                 </div>
                 <div>
+                  <Label>Canal</Label>
+                  <Select
+                    value={form.channel}
+                    onValueChange={(v) =>
+                      setForm({ ...form, channel: v, template_id: "", media_id: "" })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                      <SelectItem value="email">E-mail</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label>Template</Label>
                   <Select
                     value={form.template_id}
@@ -174,13 +224,18 @@ export function CampanhasView() {
                       <SelectValue placeholder="Selecione um template" />
                     </SelectTrigger>
                     <SelectContent>
-                      {templates.map((t) => (
+                      {templatesDoCanal.map((t) => (
                         <SelectItem key={t.id} value={t.id}>
-                          {t.meta_template_name}
+                          {t.name ?? t.meta_template_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {templatesDoCanal.length === 0 && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Nenhum template para esse canal ainda — crie um na aba "Templates".
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label>Público-alvo</Label>
@@ -214,33 +269,55 @@ export function CampanhasView() {
                     placeholder="https://..."
                   />
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2">
+                {form.channel === "whatsapp" && (
                   <div>
-                    <Label htmlFor="camp-midia">Mídia no cabeçalho (opcional)</Label>
-                    <Input
-                      id="camp-midia"
-                      value={form.media_url}
-                      onChange={(e) => setForm({ ...form, media_url: e.target.value })}
-                      placeholder="https://..."
-                    />
+                    <Label>Mídia no cabeçalho (opcional)</Label>
+                    {mediaAssets.length === 0 ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Nenhum arquivo na biblioteca ainda — envie um na aba "Biblioteca de mídia".
+                      </p>
+                    ) : (
+                      <div className="mt-1 grid max-h-40 grid-cols-4 gap-2 overflow-y-auto">
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, media_id: "" })}
+                          className={`flex h-16 items-center justify-center rounded-md border text-[11px] text-muted-foreground ${
+                            form.media_id === ""
+                              ? "border-primary ring-1 ring-primary"
+                              : "border-border"
+                          }`}
+                        >
+                          Sem mídia
+                        </button>
+                        {mediaAssets.map((asset) => (
+                          <button
+                            type="button"
+                            key={asset.id}
+                            onClick={() => setForm({ ...form, media_id: asset.id })}
+                            title={asset.file_name}
+                            className={`h-16 overflow-hidden rounded-md border ${
+                              form.media_id === asset.id
+                                ? "border-primary ring-1 ring-primary"
+                                : "border-border"
+                            }`}
+                          >
+                            {asset.media_type === "IMAGE" ? (
+                              <img
+                                src={asset.public_url}
+                                alt={asset.file_name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full items-center justify-center bg-muted text-[10px] text-muted-foreground">
+                                {asset.file_name}
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <Label>Tipo de mídia</Label>
-                    <Select
-                      value={form.media_type}
-                      onValueChange={(v) => setForm({ ...form, media_type: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Sem mídia</SelectItem>
-                        <SelectItem value="image">Imagem</SelectItem>
-                        <SelectItem value="video">Vídeo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>
@@ -266,13 +343,14 @@ export function CampanhasView() {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{c.name}</span>
                   <StatusBadge status={c.status} />
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                    {c.channel === "email" ? "E-mail" : "WhatsApp"}
+                  </span>
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
                   Alvo: {alvoLabel(c)} · criada em{" "}
                   {new Date(c.created_at).toLocaleDateString("pt-BR")}
-                  {c.sent_at
-                    ? ` · enviada em ${new Date(c.sent_at).toLocaleString("pt-BR")}`
-                    : ""}
+                  {c.sent_at ? ` · enviada em ${new Date(c.sent_at).toLocaleString("pt-BR")}` : ""}
                 </div>
               </div>
               <div className="flex gap-2">
