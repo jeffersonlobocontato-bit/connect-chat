@@ -159,16 +159,20 @@ export function SegmentacaoView() {
         title="Segmentação"
         subtitle="Agrupe a base por etiqueta, veículo ou região para disparos direcionados."
         action={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-1.5 h-4 w-4" />
-                Novo segmento
-              </Button>
-            </DialogTrigger>
+          <Dialog
+            open={open}
+            onOpenChange={(o) => {
+              setOpen(o);
+              if (!o) resetForm();
+            }}
+          >
+            <Button onClick={abrirNovo}>
+              <Plus className="mr-1.5 h-4 w-4" />
+              Novo segmento
+            </Button>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Novo segmento</DialogTitle>
+                <DialogTitle>{editingId ? "Editar segmento" : "Novo segmento"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
                 <div>
