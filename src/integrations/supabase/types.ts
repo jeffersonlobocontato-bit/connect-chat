@@ -309,6 +309,21 @@ export type Database = {
           },
         ]
       }
+      email_import_staging: {
+        Row: {
+          email: string
+          phone: string
+        }
+        Insert: {
+          email: string
+          phone: string
+        }
+        Update: {
+          email?: string
+          phone?: string
+        }
+        Relationships: []
+      }
       journalists: {
         Row: {
           active: boolean
