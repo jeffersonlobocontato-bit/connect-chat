@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       campaigns: {
         Row: {
+          audience: string
           channel: string
           created_at: string
           created_by: string | null
@@ -34,6 +35,7 @@ export type Database = {
           template_id: string | null
         }
         Insert: {
+          audience?: string
           channel?: string
           created_at?: string
           created_by?: string | null
@@ -52,6 +54,7 @@ export type Database = {
           template_id?: string | null
         }
         Update: {
+          audience?: string
           channel?: string
           created_at?: string
           created_by?: string | null
@@ -309,8 +312,10 @@ export type Database = {
       journalists: {
         Row: {
           active: boolean
+          audience: string
           bounce_reason: string | null
           bounced_at: string | null
+          company: string | null
           created_at: string
           email: string | null
           id: string
@@ -319,15 +324,20 @@ export type Database = {
           opt_in_email: boolean
           opt_in_whatsapp: boolean
           outlet: string | null
+          owner_note: string | null
           phone: string
           region: string | null
           role_title: string | null
+          source: string | null
+          stage: string | null
           tags: string[]
         }
         Insert: {
           active?: boolean
+          audience?: string
           bounce_reason?: string | null
           bounced_at?: string | null
+          company?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -336,15 +346,20 @@ export type Database = {
           opt_in_email?: boolean
           opt_in_whatsapp?: boolean
           outlet?: string | null
+          owner_note?: string | null
           phone: string
           region?: string | null
           role_title?: string | null
+          source?: string | null
+          stage?: string | null
           tags?: string[]
         }
         Update: {
           active?: boolean
+          audience?: string
           bounce_reason?: string | null
           bounced_at?: string | null
+          company?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -353,9 +368,12 @@ export type Database = {
           opt_in_email?: boolean
           opt_in_whatsapp?: boolean
           outlet?: string | null
+          owner_note?: string | null
           phone?: string
           region?: string | null
           role_title?: string | null
+          source?: string | null
+          stage?: string | null
           tags?: string[]
         }
         Relationships: []
@@ -473,6 +491,7 @@ export type Database = {
       }
       segments: {
         Row: {
+          audience: string
           created_at: string
           description: string | null
           id: string
@@ -480,6 +499,7 @@ export type Database = {
           rules: Json
         }
         Insert: {
+          audience?: string
           created_at?: string
           description?: string | null
           id?: string
@@ -487,6 +507,7 @@ export type Database = {
           rules?: Json
         }
         Update: {
+          audience?: string
           created_at?: string
           description?: string | null
           id?: string
