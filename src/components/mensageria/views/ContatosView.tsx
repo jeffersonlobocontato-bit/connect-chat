@@ -212,6 +212,9 @@ export function ContatosView({ audience }: { audience: Audience }) {
       name: form.name.trim(),
       phone,
       email: form.email.trim() || null,
+      messenger_psid: form.messenger_psid.trim() || null,
+      instagram_igsid: form.instagram_igsid.trim() || null,
+
       outlet: form.outlet.trim() || null,
       role_title: form.role_title.trim() || null,
       region: form.region.trim() || null,
