@@ -64,13 +64,33 @@ export const dispatchCampaign = createServerFn({ method: "POST" })
         .select("rules")
         .eq("id", campaign.segment_id)
         .single();
-      const { data: journalists } = await supabase
-        .from("journalists")
-        .select("id, name, phone, email, outlet, region, tags")
-        .eq("active", true)
-        .eq("opt_in", true);
       const rules = (segment?.rules ?? []) as never;
-      recipients = (journalists ?? [])
+
+      // PostgREST limita a 1.000 linhas por requisição — pagina a base inteira.
+      const pageSize = 1000;
+      const journalists: Array<{
+        id: string;
+        name: string;
+        phone: string;
+        email: string | null;
+        outlet: string | null;
+        region: string | null;
+        tags: string[] | null;
+      }> = [];
+      for (let page = 0; ; page += 1) {
+        const { data: chunk, error } = await supabase
+          .from("journalists")
+          .select("id, name, phone, email, outlet, region, tags")
+          .eq("active", true)
+          .eq("opt_in", true)
+          .order("id")
+          .range(page * pageSize, page * pageSize + pageSize - 1);
+        if (error || !chunk || chunk.length === 0) break;
+        journalists.push(...chunk);
+        if (chunk.length < pageSize) break;
+      }
+
+      recipients = journalists
         .filter((j) => matchesRules(j, rules))
         .map((j) => ({ id: j.id, phone: j.phone, name: j.name, email: j.email, outlet: j.outlet }));
     }
