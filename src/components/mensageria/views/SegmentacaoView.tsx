@@ -17,9 +17,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  
 } from "@/components/ui/dialog";
-import { Plus, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { describeRules, matchesRules, type SegmentRule } from "@/lib/segments";
 import { EmptyState, PageHeader } from "../ui-bits";
@@ -42,6 +42,7 @@ export function SegmentacaoView() {
   const [segments, setSegments] = useState<Segment[]>([]);
   const [base, setBase] = useState<Journalist[]>([]);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [rules, setRules] = useState<SegmentRule[]>([]);
@@ -97,25 +98,49 @@ export function SegmentacaoView() {
     setValue("");
   }
 
+  function resetForm() {
+    setEditingId(null);
+    setName("");
+    setDescription("");
+    setRules([]);
+    setValue("");
+    setField("tags");
+  }
+
+  function abrirNovo() {
+    resetForm();
+    setOpen(true);
+  }
+
+  function abrirEdicao(s: Segment) {
+    setEditingId(s.id);
+    setName(s.name);
+    setDescription(s.description ?? "");
+    setRules(s.rules ?? []);
+    setValue("");
+    setOpen(true);
+  }
+
   async function salvar() {
     if (!name.trim()) {
       toast.error("Dê um nome ao segmento");
       return;
     }
-    const { error } = await supabase.from("segments").insert({
+    const payload = {
       name: name.trim(),
       description: description.trim() || null,
       rules: rules as unknown as never,
-    });
+    };
+    const { error } = editingId
+      ? await supabase.from("segments").update(payload).eq("id", editingId)
+      : await supabase.from("segments").insert(payload);
     if (error) {
       toast.error("Erro ao salvar segmento");
       return;
     }
-    toast.success("Segmento criado");
+    toast.success(editingId ? "Segmento atualizado" : "Segmento criado");
     setOpen(false);
-    setName("");
-    setDescription("");
-    setRules([]);
+    resetForm();
     void carregar();
   }
 
@@ -134,16 +159,20 @@ export function SegmentacaoView() {
         title="Segmentação"
         subtitle="Agrupe a base por etiqueta, veículo ou região para disparos direcionados."
         action={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-1.5 h-4 w-4" />
-                Novo segmento
-              </Button>
-            </DialogTrigger>
+          <Dialog
+            open={open}
+            onOpenChange={(o) => {
+              setOpen(o);
+              if (!o) resetForm();
+            }}
+          >
+            <Button onClick={abrirNovo}>
+              <Plus className="mr-1.5 h-4 w-4" />
+              Novo segmento
+            </Button>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Novo segmento</DialogTitle>
+                <DialogTitle>{editingId ? "Editar segmento" : "Novo segmento"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
                 <div>
@@ -253,9 +282,14 @@ export function SegmentacaoView() {
                     <p className="mt-1 text-xs text-muted-foreground">{s.description}</p>
                   ) : null}
                 </div>
-                <Button size="icon" variant="ghost" onClick={() => remover(s.id)}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
+                <div className="flex shrink-0 items-center">
+                  <Button size="icon" variant="ghost" onClick={() => abrirEdicao(s)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" onClick={() => remover(s.id)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">{describeRules(s.rules)}</p>
               <div className="mt-3 text-sm">
