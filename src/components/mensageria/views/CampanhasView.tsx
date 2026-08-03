@@ -20,7 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Send, Trash2 } from "lucide-react";
+import { Pencil, Plus, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState, PageHeader, StatusBadge } from "../ui-bits";
 
@@ -69,6 +69,7 @@ export function CampanhasView() {
   const [lists, setLists] = useState<Array<{ id: string; name: string }>>([]);
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -112,6 +113,46 @@ export function CampanhasView() {
     void carregar();
   }, []);
 
+  function resetForm() {
+    setEditingId(null);
+    setForm({
+      name: "",
+      channel: "whatsapp",
+      audience: "press",
+      template_id: "",
+      target: "",
+      link_url: "",
+      media_id: "",
+      scheduleMode: "now",
+      scheduled_at: "",
+    });
+  }
+
+  function editar(c: Campaign) {
+    setEditingId(c.id);
+    setForm({
+      name: c.name,
+      channel: c.channel ?? "whatsapp",
+      audience: c.audience ?? "press",
+      template_id: c.template_id ?? "",
+      target: c.segment_id
+        ? `segment:${c.segment_id}`
+        : c.list_id
+          ? `list:${c.list_id}`
+          : "",
+      link_url: c.link_url ?? "",
+      media_id: c.media_id ?? "",
+      scheduleMode: c.scheduled_at ? "later" : "now",
+      scheduled_at: c.scheduled_at
+        ? new Date(new Date(c.scheduled_at).getTime() -
+            new Date(c.scheduled_at).getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 16)
+        : "",
+    });
+    setOpen(true);
+  }
+
   async function salvar() {
     if (!form.name.trim()) {
       toast.error("Dê um nome à campanha");
@@ -133,7 +174,7 @@ export function CampanhasView() {
     const { data: userData } = await supabase.auth.getUser();
 
     const isScheduled = form.scheduleMode === "later";
-    const { error } = await supabase.from("campaigns").insert({
+    const payload = {
       name: form.name.trim(),
       channel: form.channel,
       audience: form.audience,
@@ -144,25 +185,26 @@ export function CampanhasView() {
       media_id: form.channel === "whatsapp" ? form.media_id || null : null,
       status: isScheduled ? "SCHEDULED" : "DRAFT",
       scheduled_at: isScheduled ? new Date(form.scheduled_at).toISOString() : null,
-      created_by: userData.user?.id ?? null,
-    });
+    };
+
+    const { error } = editingId
+      ? await supabase.from("campaigns").update(payload).eq("id", editingId)
+      : await supabase
+          .from("campaigns")
+          .insert({ ...payload, created_by: userData.user?.id ?? null });
     if (error) {
-      toast.error("Erro ao criar campanha");
+      toast.error(editingId ? "Erro ao salvar campanha" : "Erro ao criar campanha");
       return;
     }
-    toast.success(isScheduled ? "Campanha agendada" : "Campanha criada como rascunho");
+    toast.success(
+      editingId
+        ? "Campanha atualizada"
+        : isScheduled
+          ? "Campanha agendada"
+          : "Campanha criada como rascunho",
+    );
     setOpen(false);
-    setForm({
-      name: "",
-      channel: "whatsapp",
-      audience: "press",
-      template_id: "",
-      target: "",
-      link_url: "",
-      media_id: "",
-      scheduleMode: "now",
-      scheduled_at: "",
-    });
+    resetForm();
     void carregar();
   }
 
@@ -202,16 +244,22 @@ export function CampanhasView() {
         title="Campanhas"
         subtitle="Crie o disparo, escolha o público e envie o comunicado."
         action={
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog
+            open={open}
+            onOpenChange={(v) => {
+              setOpen(v);
+              if (!v) resetForm();
+            }}
+          >
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={resetForm}>
                 <Plus className="mr-1.5 h-4 w-4" />
                 Nova campanha
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Nova campanha</DialogTitle>
+                <DialogTitle>{editingId ? "Editar campanha" : "Nova campanha"}</DialogTitle>
               </DialogHeader>
               <div className="grid gap-3">
                 <div>
@@ -400,7 +448,11 @@ export function CampanhasView() {
                   Cancelar
                 </Button>
                 <Button onClick={salvar}>
-                  {form.scheduleMode === "later" ? "Agendar campanha" : "Criar rascunho"}
+                  {editingId
+                    ? "Salvar alterações"
+                    : form.scheduleMode === "later"
+                      ? "Agendar campanha"
+                      : "Criar rascunho"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -446,6 +498,11 @@ export function CampanhasView() {
                       : c.status === "SCHEDULED"
                         ? "Disparar agora"
                         : "Disparar"}
+                  </Button>
+                ) : null}
+                {c.status === "DRAFT" || c.status === "FAILED" || c.status === "SCHEDULED" ? (
+                  <Button size="icon" variant="ghost" onClick={() => editar(c)} title="Editar">
+                    <Pencil className="h-4 w-4" />
                   </Button>
                 ) : null}
                 <Button size="icon" variant="ghost" onClick={() => remover(c.id)}>
