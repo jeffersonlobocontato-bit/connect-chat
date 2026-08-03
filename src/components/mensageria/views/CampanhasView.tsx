@@ -463,7 +463,48 @@ export function CampanhasView() {
                       </SelectContent>
                     </Select>
 
+                    <Label className="mt-3 block">Imagem do topo do e-mail</Label>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <input
+                        ref={imagemInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void enviarImagemTopo(file);
+                          e.target.value = "";
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={enviandoImagem}
+                        onClick={() => imagemInputRef.current?.click()}
+                      >
+                        {enviandoImagem ? "Enviando..." : "Enviar imagem"}
+                      </Button>
+                      <Input
+                        className="w-72"
+                        placeholder="ou cole a URL da imagem"
+                        value={imagemTopo}
+                        onChange={(e) => setImagemTopo(e.target.value)}
+                      />
+                      {imagemTopo && (
+                        <img
+                          src={imagemTopo}
+                          alt="Prévia da imagem do topo"
+                          className="h-12 w-12 rounded object-cover"
+                        />
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Se ficar em branco, usamos a capa da matéria ou a primeira imagem do link.
+                    </p>
+
                     <Label htmlFor="camp-instrucoes" className="mt-3 block">
+
                       Instruções para a IA (opcional)
                     </Label>
                     <Textarea
