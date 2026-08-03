@@ -164,6 +164,50 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_messages: {
+        Row: {
+          body: string
+          channel: string
+          created_at: string
+          direction: string
+          id: string
+          journalist_id: string | null
+          read_by_admin: boolean
+          status: string
+          wa_message_id: string | null
+        }
+        Insert: {
+          body: string
+          channel?: string
+          created_at?: string
+          direction: string
+          id?: string
+          journalist_id?: string | null
+          read_by_admin?: boolean
+          status?: string
+          wa_message_id?: string | null
+        }
+        Update: {
+          body?: string
+          channel?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          journalist_id?: string | null
+          read_by_admin?: boolean
+          status?: string
+          wa_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_messages_journalist_id_fkey"
+            columns: ["journalist_id"]
+            isOneToOne: false
+            referencedRelation: "journalists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispatch_logs: {
         Row: {
           campaign_id: string

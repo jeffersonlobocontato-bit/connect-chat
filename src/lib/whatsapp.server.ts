@@ -106,6 +106,57 @@ export function makeShortCode(): string {
   return Math.random().toString(36).slice(2, 8);
 }
 
+/**
+ * Envia texto livre (sem template) — só funciona dentro da janela de 24h
+ * desde a última mensagem recebida daquele contato (regra da própria Meta
+ * pra evitar spam fora de uma conversa em andamento). Usado pela caixa de
+ * entrada, nunca por campanhas em massa.
+ */
+export async function sendFreeformText(params: { to: string; body: string }): Promise<SendResult> {
+  if (!isLiveMode()) {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    return { ok: true, messageId: `sim_reply_${crypto.randomUUID()}` };
+  }
+
+  const token = process.env["META_WHATSAPP_TOKEN"]!;
+  const phoneNumberId = process.env["META_PHONE_NUMBER_ID"]!;
+  const version = process.env["META_API_VERSION"] || "v21.0";
+
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/${version}/${phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: params.to,
+          type: "text",
+          text: { body: params.body },
+        }),
+      },
+    );
+
+    const text = await response.text();
+    if (!response.ok) {
+      console.error(`[whatsapp] resposta falhou [${response.status}]: ${text}`);
+      // Erro mais comum aqui: fora da janela de 24h — a Meta recusa texto
+      // livre e exige um template pago nesse caso.
+      return { ok: false, error: `[${response.status}] ${text}` };
+    }
+
+    const payload = JSON.parse(text) as { messages?: Array<{ id: string }> };
+    return { ok: true, messageId: payload.messages?.[0]?.id };
+  } catch (error) {
+    const messageText = error instanceof Error ? error.message : String(error);
+    console.error(`[whatsapp] erro de rede na resposta: ${messageText}`);
+    return { ok: false, error: messageText };
+  }
+}
+
 // Mídia uploadada na Meta fica disponível por cerca de 30 dias (política da
 // própria Meta, sem garantia de prazo fixo). Reenviamos com folga antes disso.
 const META_MEDIA_MAX_AGE_MS = 25 * 24 * 60 * 60 * 1000;
