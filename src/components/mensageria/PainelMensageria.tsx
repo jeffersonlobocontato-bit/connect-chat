@@ -152,6 +152,7 @@ export function PainelMensageria() {
         <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8">
           {active === "dashboard" && <DashboardView />}
           {active === "jornalistas" && <JornalistasView />}
+          {active === "leads" && <LeadsView />}
           {active === "segmentacao" && <SegmentacaoView />}
           {active === "templates" && <TemplatesView />}
           {active === "midia" && <MediaLibraryView />}
