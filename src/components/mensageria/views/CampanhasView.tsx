@@ -20,7 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Send, Trash2 } from "lucide-react";
+import { Pencil, Plus, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState, PageHeader, StatusBadge } from "../ui-bits";
 
@@ -69,6 +69,7 @@ export function CampanhasView() {
   const [lists, setLists] = useState<Array<{ id: string; name: string }>>([]);
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
