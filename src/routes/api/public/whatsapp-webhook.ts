@@ -19,6 +19,20 @@ const STATUS_MAP: Record<string, string> = {
   failed: "FAILED",
 };
 
+// Palavras-chave que, na mensagem recebida, são tratadas como pedido de
+// descadastro do WhatsApp — a Meta exige um mecanismo simples de opt-out,
+// e "responda PARAR" é o padrão mais reconhecido no Brasil.
+const OPT_OUT_KEYWORDS = ["sair", "parar", "cancelar", "descadastrar", "stop", "unsubscribe"];
+
+function isOptOutMessage(text: string): boolean {
+  const normalized = text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+  return OPT_OUT_KEYWORDS.some((kw) => normalized === kw || normalized === `"${kw}"`);
+}
+
 export const Route = createFileRoute("/api/public/whatsapp-webhook")({
   server: {
     handlers: {
