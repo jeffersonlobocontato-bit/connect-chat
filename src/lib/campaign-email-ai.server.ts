@@ -98,9 +98,14 @@ export async function generateEmailFromRelease(params: {
         .select("public_url")
         .eq("id", release.cover_media_id)
         .single();
-      coverUrl = media?.public_url ?? null;
-      if (coverUrl) downloadUrl = `${params.origin}/api/public/release-image/${release.id}`;
+      if (media?.public_url) {
+        // URL estável no nosso domínio (o link assinado do storage expira e é
+        // bloqueado por alguns clientes de e-mail).
+        coverUrl = `${params.origin}/api/public/release-image/${release.id}?inline=1`;
+        downloadUrl = `${params.origin}/api/public/release-image/${release.id}`;
+      }
     }
+
   }
 
   const apiKey = process.env["LOVABLE_API_KEY"];
@@ -161,10 +166,23 @@ Regras obrigatórias:
     const jsonText = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
     const parsed = JSON.parse(jsonText) as { subject?: string; html?: string };
     if (!parsed.html) return fallback();
+
+    // Rede de segurança: se a IA não incluiu a foto de capa, insere a miniatura
+    // no topo do corpo (com largura fixa, para não pesar no cliente de e-mail).
+    let html = parsed.html;
+    if (coverUrl && !/<img/i.test(html)) {
+      const img = `<img src="${coverUrl}" alt="${title.replace(/"/g, "&quot;")}" width="600" style="width:100%;max-width:600px;height:auto;display:block;border-radius:10px;margin:0 0 18px" />`;
+      html = /<h1[\s\S]*?<\/h1>/i.test(html)
+        ? html.replace(/(<\/h1>)/i, `$1${img}`)
+        : html.replace(/(<div[^>]*>)/i, `$1${img}`);
+      if (!/<img/i.test(html)) html = img + html;
+    }
+
     return {
       subject: (parsed.subject || title).slice(0, 120),
-      html: parsed.html,
+      html,
     };
+
   } catch (error) {
     console.error(
       `[campanha-ia] erro ao gerar e-mail: ${error instanceof Error ? error.message : String(error)}`,
