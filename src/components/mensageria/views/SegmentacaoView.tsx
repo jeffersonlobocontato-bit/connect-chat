@@ -17,17 +17,20 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  
 } from "@/components/ui/dialog";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { describeRules, matchesRules, type SegmentRule } from "@/lib/segments";
 import { EmptyState, PageHeader } from "../ui-bits";
 
-type Journalist = {
+type Contact = {
   id: string;
+  audience: string;
   outlet: string | null;
   region: string | null;
+  company: string | null;
+  source: string | null;
+  stage: string | null;
   tags: string[];
 };
 
@@ -35,34 +38,51 @@ type Segment = {
   id: string;
   name: string;
   description: string | null;
+  audience: string;
   rules: SegmentRule[];
 };
 
+const PRESS_FIELDS: Array<{ value: SegmentRule["field"]; label: string }> = [
+  { value: "tags", label: "Etiqueta" },
+  { value: "outlet", label: "Veículo" },
+  { value: "region", label: "Região" },
+];
+
+const LEAD_FIELDS: Array<{ value: SegmentRule["field"]; label: string }> = [
+  { value: "tags", label: "Etiqueta" },
+  { value: "company", label: "Empresa" },
+  { value: "source", label: "Origem" },
+  { value: "stage", label: "Estágio" },
+  { value: "region", label: "Região" },
+];
+
 export function SegmentacaoView() {
   const [segments, setSegments] = useState<Segment[]>([]);
-  const [base, setBase] = useState<Journalist[]>([]);
+  const [base, setBase] = useState<Contact[]>([]);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [audience, setAudience] = useState<"press" | "lead">("press");
   const [rules, setRules] = useState<SegmentRule[]>([]);
   const [field, setField] = useState<SegmentRule["field"]>("tags");
   const [value, setValue] = useState("");
 
-  async function carregarBase(): Promise<Journalist[]> {
+  const camposDisponiveis = audience === "lead" ? LEAD_FIELDS : PRESS_FIELDS;
+
+  async function carregarBase(): Promise<Contact[]> {
     // PostgREST devolve no máximo 1.000 linhas por requisição — pagina até o fim.
     const pageSize = 1000;
-    const all: Journalist[] = [];
+    const all: Contact[] = [];
     for (let page = 0; ; page += 1) {
       const { data, error } = await supabase
         .from("journalists")
-        .select("id, outlet, region, tags")
+        .select("id, audience, outlet, region, company, source, stage, tags")
         .eq("active", true)
-        .eq("opt_in", true)
         .order("id")
         .range(page * pageSize, page * pageSize + pageSize - 1);
       if (error || !data || data.length === 0) break;
-      all.push(...data);
+      all.push(...(data as unknown as Contact[]));
       if (data.length < pageSize) break;
     }
     return all;
@@ -78,6 +98,7 @@ export function SegmentacaoView() {
         id: s.id,
         name: s.name,
         description: s.description,
+        audience: (s as { audience?: string }).audience ?? "press",
         rules: (s.rules ?? []) as unknown as SegmentRule[],
       })),
     );
@@ -88,25 +109,29 @@ export function SegmentacaoView() {
     void carregar();
   }, []);
 
+  const basePublico = useMemo(
+    () => base.filter((c) => c.audience === audience),
+    [base, audience],
+  );
+
   const previewCount = useMemo(
-    () => base.filter((j) => matchesRules(j, rules)).length,
-    [base, rules],
+    () => basePublico.filter((c) => matchesRules(c, rules)).length,
+    [basePublico, rules],
   );
 
   const sugestoes = useMemo(() => {
     const todos =
       field === "tags"
-        ? base.flatMap((j) => j.tags ?? [])
-        : (base.map((j) => (field === "outlet" ? j.outlet : j.region)).filter(Boolean) as string[]);
+        ? basePublico.flatMap((c) => c.tags ?? [])
+        : (basePublico
+            .map((c) => c[field as "outlet" | "region" | "company" | "source" | "stage"])
+            .filter(Boolean) as string[]);
     const unicos = Array.from(new Set(todos)).sort((a, b) => a.localeCompare(b, "pt-BR"));
     // Filtra pelo que está sendo digitado (último valor da lista separada por vírgula).
     const termo = (value.split(",").pop() ?? "").trim().toLowerCase();
-    const filtrados = termo
-      ? unicos.filter((s) => s.toLowerCase().includes(termo))
-      : unicos;
+    const filtrados = termo ? unicos.filter((s) => s.toLowerCase().includes(termo)) : unicos;
     return filtrados.slice(0, 12);
-  }, [base, field, value]);
-
+  }, [basePublico, field, value]);
 
   function adicionarRegra() {
     const valores = value
@@ -125,6 +150,7 @@ export function SegmentacaoView() {
     setEditingId(null);
     setName("");
     setDescription("");
+    setAudience("press");
     setRules([]);
     setValue("");
     setField("tags");
@@ -139,9 +165,20 @@ export function SegmentacaoView() {
     setEditingId(s.id);
     setName(s.name);
     setDescription(s.description ?? "");
+    setAudience(s.audience === "lead" ? "lead" : "press");
     setRules(s.rules ?? []);
     setValue("");
+    setField("tags");
     setOpen(true);
+  }
+
+  function trocarPublico(v: string) {
+    const novo = v === "lead" ? "lead" : "press";
+    setAudience(novo);
+    // As regras dependem dos campos do público — recomeça para não misturar.
+    setRules([]);
+    setField("tags");
+    setValue("");
   }
 
   async function salvar() {
@@ -152,6 +189,7 @@ export function SegmentacaoView() {
     const payload = {
       name: name.trim(),
       description: description.trim() || null,
+      audience,
       rules: rules as unknown as never,
     };
     const { error } = editingId
@@ -176,11 +214,15 @@ export function SegmentacaoView() {
     void carregar();
   }
 
+  function contarSegmento(s: Segment) {
+    return base.filter((c) => c.audience === s.audience && matchesRules(c, s.rules)).length;
+  }
+
   return (
     <div>
       <PageHeader
         title="Segmentação"
-        subtitle="Agrupe a base por etiqueta, veículo ou região para disparos direcionados."
+        subtitle="Agrupe a base de imprensa ou de leads para disparos direcionados."
         action={
           <Dialog
             open={open}
@@ -208,6 +250,18 @@ export function SegmentacaoView() {
                   />
                 </div>
                 <div>
+                  <Label>Público</Label>
+                  <Select value={audience} onValueChange={trocarPublico}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="press">Imprensa (jornalistas)</SelectItem>
+                      <SelectItem value="lead">Leads gerais</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label htmlFor="seg-desc">Descrição</Label>
                   <Textarea
                     id="seg-desc"
@@ -228,9 +282,11 @@ export function SegmentacaoView() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="tags">Etiqueta</SelectItem>
-                        <SelectItem value="outlet">Veículo</SelectItem>
-                        <SelectItem value="region">Região</SelectItem>
+                        {camposDisponiveis.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>
+                            {c.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <Input
@@ -281,7 +337,8 @@ export function SegmentacaoView() {
                   </div>
 
                   <div className="mt-3 text-sm">
-                    Alcance estimado: <strong>{previewCount}</strong> jornalistas com opt-in
+                    Alcance estimado: <strong>{previewCount}</strong>{" "}
+                    {audience === "lead" ? "leads ativos" : "jornalistas ativos"}
                   </div>
                 </div>
               </div>
@@ -304,7 +361,12 @@ export function SegmentacaoView() {
             <div key={s.id} className="rounded-xl border border-border bg-card p-5">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <div className="font-medium">{s.name}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{s.name}</span>
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                      {s.audience === "lead" ? "Leads" : "Imprensa"}
+                    </span>
+                  </div>
                   {s.description ? (
                     <p className="mt-1 text-xs text-muted-foreground">{s.description}</p>
                   ) : null}
@@ -320,7 +382,8 @@ export function SegmentacaoView() {
               </div>
               <p className="mt-3 text-xs text-muted-foreground">{describeRules(s.rules)}</p>
               <div className="mt-3 text-sm">
-                <strong>{base.filter((j) => matchesRules(j, s.rules)).length}</strong> jornalistas
+                <strong>{contarSegmento(s)}</strong>{" "}
+                {s.audience === "lead" ? "leads" : "jornalistas"}
               </div>
             </div>
           ))}
