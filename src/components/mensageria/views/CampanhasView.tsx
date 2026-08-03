@@ -259,7 +259,7 @@ export function CampanhasView() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Nova campanha</DialogTitle>
+                <DialogTitle>{editingId ? "Editar campanha" : "Nova campanha"}</DialogTitle>
               </DialogHeader>
               <div className="grid gap-3">
                 <div>
@@ -448,7 +448,11 @@ export function CampanhasView() {
                   Cancelar
                 </Button>
                 <Button onClick={salvar}>
-                  {form.scheduleMode === "later" ? "Agendar campanha" : "Criar rascunho"}
+                  {editingId
+                    ? "Salvar alterações"
+                    : form.scheduleMode === "later"
+                      ? "Agendar campanha"
+                      : "Criar rascunho"}
                 </Button>
               </DialogFooter>
             </DialogContent>
