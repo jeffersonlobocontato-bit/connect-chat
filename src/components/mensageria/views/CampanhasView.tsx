@@ -82,9 +82,13 @@ export function CampanhasView() {
   >([]);
   const [lists, setLists] = useState<Array<{ id: string; name: string }>>([]);
   const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
+  const [releases, setReleases] = useState<ReleaseOption[]>([]);
+  const [clients, setClients] = useState<Array<{ id: string; slug: string }>>([]);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [gerando, setGerando] = useState(false);
+  const [instrucoes, setInstrucoes] = useState("");
   const [form, setForm] = useState({
     name: "",
     channel: "whatsapp",
@@ -93,17 +97,21 @@ export function CampanhasView() {
     target: "",
     link_url: "",
     media_id: "",
+    release_id: "",
+    email_subject: "",
+    email_html: "",
     scheduleMode: "now",
     scheduled_at: "",
   });
   const disparar = useServerFn(dispatchCampaign);
+  const gerarEmail = useServerFn(generateCampaignEmail);
   const templatesDoCanal = templates.filter((t) => t.channel === form.channel);
   const segmentosDoPublico = segments.filter(
     (s) => form.audience === "all" || s.audience === form.audience,
   );
 
   async function carregar() {
-    const [c, t, s, l, m] = await Promise.all([
+    const [c, t, s, l, m, r, cl] = await Promise.all([
       supabase.from("campaigns").select("*").order("created_at", { ascending: false }),
       supabase
         .from("message_templates")
@@ -115,12 +123,19 @@ export function CampanhasView() {
         .from("media_library")
         .select("id, file_name, public_url, media_type")
         .order("created_at", { ascending: false }),
+      supabase
+        .from("releases")
+        .select("id, title, slug, published, client_id")
+        .order("created_at", { ascending: false }),
+      supabase.from("clients").select("id, slug"),
     ]);
     setRows((c.data ?? []) as Campaign[]);
     setTemplates((t.data ?? []) as Template[]);
     setSegments((s.data ?? []) as Array<{ id: string; name: string; audience: string }>);
     setLists(l.data ?? []);
     setMediaAssets((m.data ?? []) as MediaAsset[]);
+    setReleases((r.data ?? []) as ReleaseOption[]);
+    setClients((cl.data ?? []) as Array<{ id: string; slug: string }>);
   }
 
   useEffect(() => {
@@ -129,6 +144,7 @@ export function CampanhasView() {
 
   function resetForm() {
     setEditingId(null);
+    setInstrucoes("");
     setForm({
       name: "",
       channel: "whatsapp",
@@ -137,13 +153,63 @@ export function CampanhasView() {
       target: "",
       link_url: "",
       media_id: "",
+      release_id: "",
+      email_subject: "",
+      email_html: "",
       scheduleMode: "now",
       scheduled_at: "",
     });
   }
 
+  function releaseUrl(releaseId: string): string {
+    const release = releases.find((r) => r.id === releaseId);
+    if (!release) return "";
+    const client = clients.find((c) => c.id === release.client_id);
+    return `${window.location.origin}/release/${client?.slug ?? ""}/${release.slug}`;
+  }
+
+  function escolherRelease(releaseId: string) {
+    const id = releaseId === "none" ? "" : releaseId;
+    const release = releases.find((r) => r.id === id);
+    setForm((prev) => ({
+      ...prev,
+      release_id: id,
+      link_url: id ? releaseUrl(id) : prev.link_url,
+      name: prev.name.trim() ? prev.name : (release?.title ?? ""),
+    }));
+  }
+
+  async function montarComIA() {
+    if (!form.release_id && !form.link_url.trim()) {
+      toast.error("Escolha uma matéria publicada ou informe o link do material");
+      return;
+    }
+    setGerando(true);
+    try {
+      const result = await gerarEmail({
+        data: {
+          releaseId: form.release_id || null,
+          linkUrl: form.link_url.trim() || null,
+          campaignName: form.name.trim() || null,
+          instructions: instrucoes.trim() || null,
+        },
+      });
+      setForm((prev) => ({
+        ...prev,
+        email_subject: result.subject,
+        email_html: result.html,
+      }));
+      toast.success("Corpo do e-mail montado pela IA — revise abaixo antes de salvar");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Falha ao montar o e-mail");
+    } finally {
+      setGerando(false);
+    }
+  }
+
   function editar(c: Campaign) {
     setEditingId(c.id);
+    setInstrucoes("");
     setForm({
       name: c.name,
       channel: c.channel ?? "whatsapp",
@@ -156,6 +222,9 @@ export function CampanhasView() {
           : "",
       link_url: c.link_url ?? "",
       media_id: c.media_id ?? "",
+      release_id: c.release_id ?? "",
+      email_subject: c.email_subject ?? "",
+      email_html: c.email_html ?? "",
       scheduleMode: c.scheduled_at ? "later" : "now",
       scheduled_at: c.scheduled_at
         ? new Date(new Date(c.scheduled_at).getTime() -
@@ -172,8 +241,13 @@ export function CampanhasView() {
       toast.error("Dê um nome à campanha");
       return;
     }
-    if (!form.template_id) {
-      toast.error("Escolha um template");
+    const temCorpoProprio = form.channel === "email" && form.email_html.trim().length > 0;
+    if (!form.template_id && !temCorpoProprio) {
+      toast.error(
+        form.channel === "email"
+          ? "Escolha um template ou monte o corpo do e-mail com a IA"
+          : "Escolha um template",
+      );
       return;
     }
     if (!form.target) {
@@ -192,11 +266,14 @@ export function CampanhasView() {
       name: form.name.trim(),
       channel: form.channel,
       audience: form.audience,
-      template_id: form.template_id,
+      template_id: form.template_id || null,
       segment_id: kind === "segment" ? id! : null,
       list_id: kind === "list" ? id! : null,
       link_url: form.link_url.trim() || null,
       media_id: form.channel === "whatsapp" ? form.media_id || null : null,
+      release_id: form.channel === "email" ? form.release_id || null : null,
+      email_subject: form.channel === "email" ? form.email_subject.trim() || null : null,
+      email_html: form.channel === "email" ? form.email_html.trim() || null : null,
       status: isScheduled ? "SCHEDULED" : "DRAFT",
       scheduled_at: isScheduled ? new Date(form.scheduled_at).toISOString() : null,
     };
@@ -221,6 +298,7 @@ export function CampanhasView() {
     resetForm();
     void carregar();
   }
+
 
   async function enviar(id: string) {
     setSendingId(id);
