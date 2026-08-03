@@ -42,6 +42,7 @@ export function SegmentacaoView() {
   const [segments, setSegments] = useState<Segment[]>([]);
   const [base, setBase] = useState<Journalist[]>([]);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [rules, setRules] = useState<SegmentRule[]>([]);
