@@ -110,6 +110,10 @@ export function ContatosView({ audience }: { audience: Audience }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY);
+  const [original, setOriginal] = useState<{ whatsapp: boolean; email: boolean }>({
+    whatsapp: false,
+    email: false,
+  });
   const [saving, setSaving] = useState(false);
 
   async function carregar() {
@@ -131,6 +135,7 @@ export function ContatosView({ audience }: { audience: Audience }) {
   function abrirNovo() {
     setEditing(null);
     setForm(EMPTY);
+    setOriginal({ whatsapp: false, email: false });
     setOpen(true);
   }
 
@@ -149,9 +154,12 @@ export function ContatosView({ audience }: { audience: Audience }) {
       owner_note: c.owner_note ?? "",
       tags: (c.tags ?? []).join(", "),
       opt_in_whatsapp: c.opt_in_whatsapp,
+      opt_in_whatsapp_source: c.opt_in_whatsapp_source ?? FONTES_CONSENTIMENTO[0]!,
       opt_in_email: c.opt_in_email,
+      opt_in_email_source: c.opt_in_email_source ?? FONTES_CONSENTIMENTO[0]!,
       active: c.active,
     });
+    setOriginal({ whatsapp: c.opt_in_whatsapp, email: c.opt_in_email });
     setOpen(true);
   }
 
@@ -169,8 +177,20 @@ export function ContatosView({ audience }: { audience: Audience }) {
       toast.error("E-mail inválido");
       return;
     }
+    if (form.opt_in_whatsapp && !form.opt_in_whatsapp_source) {
+      toast.error("Informe a origem do consentimento de WhatsApp");
+      return;
+    }
+    if (form.opt_in_email && !form.opt_in_email_source) {
+      toast.error("Informe a origem do consentimento de e-mail");
+      return;
+    }
 
     setSaving(true);
+    const now = new Date().toISOString();
+    const ligouWhatsapp = form.opt_in_whatsapp && !original.whatsapp;
+    const ligouEmail = form.opt_in_email && !original.email;
+
     const payload = {
       name: form.name.trim(),
       phone,
@@ -190,6 +210,20 @@ export function ContatosView({ audience }: { audience: Audience }) {
       opt_in_whatsapp: form.opt_in_whatsapp,
       opt_in_email: form.opt_in_email,
       active: form.active,
+      // Só grava data/origem no momento em que o opt-in liga — não sobrescreve
+      // uma prova de consentimento existente só porque a tela foi salva de novo.
+      ...(ligouWhatsapp || !editing
+        ? {
+            opt_in_whatsapp_at: form.opt_in_whatsapp ? now : null,
+            opt_in_whatsapp_source: form.opt_in_whatsapp ? form.opt_in_whatsapp_source : null,
+          }
+        : {}),
+      ...(ligouEmail || !editing
+        ? {
+            opt_in_email_at: form.opt_in_email ? now : null,
+            opt_in_email_source: form.opt_in_email ? form.opt_in_email_source : null,
+          }
+        : {}),
     };
 
     const { error } = editing
