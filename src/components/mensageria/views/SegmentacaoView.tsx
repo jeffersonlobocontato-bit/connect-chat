@@ -217,8 +217,14 @@ export function SegmentacaoView() {
   }
 
   function contarSegmento(s: Segment) {
-    return base.filter((c) => c.audience === s.audience && matchesRules(c, s.rules)).length;
+    const alvo = base.filter((c) => c.audience === s.audience && matchesRules(c, s.rules));
+    return {
+      total: alvo.length,
+      email: alvo.filter((c) => (c.email ?? "").trim().length > 0).length,
+      whatsapp: alvo.filter((c) => (c.phone ?? "").trim().length > 0).length,
+    };
   }
+
 
   return (
     <div>
