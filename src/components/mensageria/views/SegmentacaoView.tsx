@@ -32,6 +32,8 @@ type Contact = {
   source: string | null;
   stage: string | null;
   tags: string[];
+  email: string | null;
+  phone: string | null;
 };
 
 type Segment = {
@@ -77,7 +79,7 @@ export function SegmentacaoView() {
     for (let page = 0; ; page += 1) {
       const { data, error } = await supabase
         .from("journalists")
-        .select("id, audience, outlet, region, company, source, stage, tags")
+        .select("id, audience, outlet, region, company, source, stage, tags, email, phone")
         .eq("active", true)
         .order("id")
         .range(page * pageSize, page * pageSize + pageSize - 1);
@@ -215,8 +217,14 @@ export function SegmentacaoView() {
   }
 
   function contarSegmento(s: Segment) {
-    return base.filter((c) => c.audience === s.audience && matchesRules(c, s.rules)).length;
+    const alvo = base.filter((c) => c.audience === s.audience && matchesRules(c, s.rules));
+    return {
+      total: alvo.length,
+      email: alvo.filter((c) => (c.email ?? "").trim().length > 0).length,
+      whatsapp: alvo.filter((c) => (c.phone ?? "").trim().length > 0).length,
+    };
   }
+
 
   return (
     <div>
@@ -381,10 +389,24 @@ export function SegmentacaoView() {
                 </div>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">{describeRules(s.rules)}</p>
-              <div className="mt-3 text-sm">
-                <strong>{contarSegmento(s)}</strong>{" "}
-                {s.audience === "lead" ? "leads" : "jornalistas"}
-              </div>
+              {(() => {
+                const c = contarSegmento(s);
+                return (
+                  <div className="mt-3 space-y-1 text-sm">
+                    <div>
+                      <strong>{c.total}</strong> {s.audience === "lead" ? "leads" : "jornalistas"}
+                    </div>
+                    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                      <span>
+                        <strong className="text-foreground">{c.email}</strong> com e-mail
+                      </span>
+                      <span>
+                        <strong className="text-foreground">{c.whatsapp}</strong> com WhatsApp
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ))}
         </div>
