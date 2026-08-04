@@ -17,6 +17,34 @@ import { toast } from "sonner";
 import { EmptyState, PageHeader } from "../ui-bits";
 
 type Client = { id: string; name: string; slug: string };
+
+/**
+ * Deixa o corpo do release navegável de verdade: se o texto já tem marcação
+ * HTML (colado por alguém que sabe o que faz), não mexe. Senão, trata como
+ * texto corrido — cada linha em branco separa um parágrafo — e detecta
+ * linhas curtas sem pontuação final como subtítulo (padrão comum em
+ * release: "Liderança também na pesquisa espontânea" antes de um bloco).
+ */
+function formatReleaseBody(raw: string): string {
+  const trimmed = raw.trim();
+  if (/<(p|div|h[1-6]|ul|ol|blockquote)[\s>]/i.test(trimmed)) return trimmed;
+
+  const escapeHtml = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  const blocks = trimmed
+    .split(/\n\s*\n/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+
+  return blocks
+    .map((block) => {
+      const isHeading = block.length <= 100 && !block.includes("\n") && !/[.!?;:]$/.test(block);
+      const withBreaks = escapeHtml(block).replace(/\n/g, "<br />");
+      return isHeading ? `<h2>${withBreaks}</h2>` : `<p>${withBreaks}</p>`;
+    })
+    .join("\n");
+}
 type Release = {
   id: string;
   client_id: string;
@@ -122,7 +150,7 @@ export function ReleasesView() {
       title: form.title.trim(),
       slug: slugify(form.title),
       summary: form.summary.trim() || null,
-      body_html: form.body_html,
+      body_html: formatReleaseBody(form.body_html),
       cover_media_id: form.cover_media_id || null,
       published: form.published,
     };
@@ -223,9 +251,13 @@ export function ReleasesView() {
                 <Textarea
                   rows={8}
                   value={form.body_html}
-                  placeholder="Texto do release. Aceita HTML simples (<p>, <strong>, <a>)."
+                  placeholder="Escreva normalmente — deixe uma linha em branco entre parágrafos. Também aceita HTML pronto (<p>, <strong>, <a>) se preferir."
                   onChange={(e) => setForm({ ...form, body_html: e.target.value })}
                 />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Linha em branco = novo parágrafo. Linha curta sem ponto final vira subtítulo
+                  automaticamente.
+                </p>
               </div>
               <div>
                 <Label>Imagem de capa</Label>
