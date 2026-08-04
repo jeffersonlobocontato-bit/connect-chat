@@ -389,10 +389,24 @@ export function SegmentacaoView() {
                 </div>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">{describeRules(s.rules)}</p>
-              <div className="mt-3 text-sm">
-                <strong>{contarSegmento(s)}</strong>{" "}
-                {s.audience === "lead" ? "leads" : "jornalistas"}
-              </div>
+              {(() => {
+                const c = contarSegmento(s);
+                return (
+                  <div className="mt-3 space-y-1 text-sm">
+                    <div>
+                      <strong>{c.total}</strong> {s.audience === "lead" ? "leads" : "jornalistas"}
+                    </div>
+                    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                      <span>
+                        <strong className="text-foreground">{c.email}</strong> com e-mail
+                      </span>
+                      <span>
+                        <strong className="text-foreground">{c.whatsapp}</strong> com WhatsApp
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ))}
         </div>
