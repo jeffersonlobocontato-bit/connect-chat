@@ -2,17 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type AuthContext = {
-  supabase: {
-    rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: boolean | null }>;
-  };
+  supabase: unknown;
   userId: string;
 };
 
 /** Admin gerencia tudo; Agente ("user") também opera a Caixa de Entrada. */
 async function assertInboxAccess(context: AuthContext) {
-  const [{ data: isAdmin }, { data: isAgent }] = await Promise.all([
-    context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" }),
-    context.supabase.rpc("has_role", { _user_id: context.userId, _role: "user" }),
+  const { userHasRole } = await import("@/lib/roles");
+  const client = context.supabase as Parameters<typeof userHasRole>[0];
+  const [isAdmin, isAgent] = await Promise.all([
+    userHasRole(client, context.userId, "admin"),
+    userHasRole(client, context.userId, "user"),
   ]);
   if (!isAdmin && !isAgent) throw new Error("Acesso restrito");
 }

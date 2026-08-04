@@ -6,13 +6,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * Papéis: "admin" (tudo) e "user" (Agente — Dashboard + Conversas).
  */
 
-async function assertAdmin(context: { supabase: { rpc: Function }; userId: string }) {
-  const { data: isAdmin } = await (
-    context.supabase.rpc as (
-      fn: string,
-      args: Record<string, unknown>,
-    ) => Promise<{ data: boolean | null }>
-  )("has_role", { _user_id: context.userId, _role: "admin" });
+async function assertAdmin(context: { supabase: unknown; userId: string }) {
+  const { userHasRole } = await import("@/lib/roles");
+  const isAdmin = await userHasRole(
+    context.supabase as Parameters<typeof userHasRole>[0],
+    context.userId,
+    "admin",
+  );
   if (!isAdmin) throw new Error("Acesso restrito a administradores");
 }
 

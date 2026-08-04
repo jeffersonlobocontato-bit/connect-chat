@@ -19,10 +19,8 @@ export const dispatchCampaign = createServerFn({ method: "POST" })
     return { campaignId: input.campaignId };
   })
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
+    const { userHasRole } = await import("@/lib/roles");
+    const isAdmin = await userHasRole(context.supabase, context.userId, "admin");
     if (!isAdmin) throw new Error("Acesso restrito a administradores");
 
     const { runCampaignDispatch } = await import("@/lib/dispatch-core.server");
@@ -43,10 +41,8 @@ export const reengageCampaign = createServerFn({ method: "POST" })
     return { campaignId: input.campaignId };
   })
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
+    const { userHasRole } = await import("@/lib/roles");
+    const isAdmin = await userHasRole(context.supabase, context.userId, "admin");
     if (!isAdmin) throw new Error("Acesso restrito a administradores");
 
     const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");

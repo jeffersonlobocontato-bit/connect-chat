@@ -25,10 +25,8 @@ export const generateCampaignEmail = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
+    const { userHasRole } = await import("@/lib/roles");
+    const isAdmin = await userHasRole(context.supabase, context.userId, "admin");
     if (!isAdmin) throw new Error("Acesso restrito a administradores");
 
     if (!data.releaseId && !data.linkUrl?.trim()) {
