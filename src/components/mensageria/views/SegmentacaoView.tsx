@@ -32,6 +32,8 @@ type Contact = {
   source: string | null;
   stage: string | null;
   tags: string[];
+  email: string | null;
+  phone: string | null;
 };
 
 type Segment = {
@@ -77,7 +79,7 @@ export function SegmentacaoView() {
     for (let page = 0; ; page += 1) {
       const { data, error } = await supabase
         .from("journalists")
-        .select("id, audience, outlet, region, company, source, stage, tags")
+        .select("id, audience, outlet, region, company, source, stage, tags, email, phone")
         .eq("active", true)
         .order("id")
         .range(page * pageSize, page * pageSize + pageSize - 1);
