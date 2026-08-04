@@ -5,17 +5,8 @@
 // cliente autenticado — a política de RLS já garante que cada usuário só
 // enxerga os próprios papéis.
 
-type RoleClient = {
-  from: (table: string) => {
-    select: (columns: string) => {
-      eq: (column: string, value: unknown) => {
-        eq: (column: string, value: unknown) => {
-          maybeSingle: () => Promise<{ data: unknown | null }>;
-        };
-      };
-    };
-  };
-};
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export type RoleClient = { from: (table: string) => any };
 
 export async function userHasRole(
   supabase: RoleClient,
