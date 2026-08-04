@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -111,7 +112,6 @@
   --sidebar-ring: oklch(0.52 0.163 253);
 }
 
-
 .dark {
   --background: oklch(0.17 0.03 254);
   --foreground: oklch(0.96 0.005 250);
@@ -172,4 +172,3 @@
     letter-spacing: -0.015em;
   }
 }
-

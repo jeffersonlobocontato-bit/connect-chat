@@ -47,9 +47,7 @@ function ReleasePage() {
         {new Date(release.createdAt).toLocaleDateString("pt-BR")}
       </p>
 
-      {release.summary && (
-        <p className="mt-5 text-lg text-muted-foreground">{release.summary}</p>
-      )}
+      {release.summary && <p className="mt-5 text-lg text-muted-foreground">{release.summary}</p>}
 
       {release.coverUrl && (
         <figure className="mt-8">
@@ -71,7 +69,7 @@ function ReleasePage() {
       )}
 
       <article
-        className="prose prose-neutral mt-8 max-w-none dark:prose-invert"
+        className="prose prose-neutral dark:prose-invert mt-8 max-w-none prose-p:leading-relaxed prose-p:my-4 prose-headings:mt-8 prose-headings:mb-3 prose-headings:font-semibold prose-h2:text-xl"
         // Conteúdo redigido pela própria equipe no painel administrativo.
         dangerouslySetInnerHTML={{ __html: release.bodyHtml }}
       />
